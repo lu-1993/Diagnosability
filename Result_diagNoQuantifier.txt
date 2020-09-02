@@ -1,0 +1,58 @@
+sat
+((ln 5))
+((lf 5))
+(((loc 0) 1)
+ ((loc 1) 2)
+ ((loc 2) 6)
+ ((loc 3) 7)
+ ((loc 4) 8)
+ ((loc 5) 8)
+(((locFault 0) 1)
+ ((locFault 1) 2)
+ ((locFault 2) 3)
+ ((locFault 3) 4)
+ ((locFault 4) 5)
+ ((locFault 5) 5)
+(((event 0) 1)
+ ((event 1) 2)
+ ((event 2) 5)
+ ((event 3) 3)
+ ((event 4) 3)
+(((eventFault 0) 1)
+ ((eventFault 1) 2)
+ ((eventFault 2) 6)
+ ((eventFault 3) 4)
+ ((eventFault 4) 3)
+(error "line 350 column 15: unsat core is not available")
+(:added-eqs               11216
+ :arith-add-rows          530
+ :arith-assert-diseq      4553
+ :arith-assert-lower      3252
+ :arith-assert-upper      3591
+ :arith-bound-prop        419
+ :arith-conflicts         4
+ :arith-eq-adapter        872
+ :arith-fixed-eqs         759
+ :arith-offset-eqs        425
+ :arith-pivots            115
+ :array-ax1               20
+ :array-ax2               352
+ :array-exp-ax2           156
+ :binary-propagations     12623
+ :conflicts               252
+ :datatype-accessor-ax    16
+ :datatype-constructor-ax 16
+ :datatype-occurs-check   32
+ :decisions               2906
+ :del-clause              1780
+ :final-checks            5
+ :max-memory              4.85
+ :memory                  2.70
+ :minimized-lits          178
+ :mk-bool-var             3748
+ :mk-clause               3024
+ :num-allocs              43990
+ :propagations            16252
+ :restarts                2
+ :rlimit-count            66280
+ :time                    0.05)
