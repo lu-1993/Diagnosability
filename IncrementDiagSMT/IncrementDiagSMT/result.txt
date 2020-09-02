@@ -1,0 +1,502 @@
+Bound 5 K_value 2 observable={o1,o2,o3} unobservable={un1,un2} fault={f}
+sat
+b0 b1 b2 b3 a0 
+((lf 4))
+(((locFault 0) 1)
+ ((locFault 1) 3)
+ ((locFault 2) 4)
+ ((locFault 3) 5)
+ ((locFault 4) 5))
+(((eventFault 0) 1)
+ ((eventFault 1) 6)
+ ((eventFault 2) 4)
+ ((eventFault 3) 3))
+((ln 5))
+(((loc 0) 1)
+ ((loc 1) 2))
+(((event 0) 1))
+(:added-eqs               3177
+ :arith-add-rows          193
+ :arith-assert-diseq      855
+ :arith-assert-lower      813
+ :arith-assert-upper      464
+ :arith-bound-prop        128
+ :arith-conflicts         2
+ :arith-eq-adapter        506
+ :arith-fixed-eqs         241
+ :arith-offset-eqs        213
+ :arith-pivots            30
+ :array-ax1               12
+ :array-ax2               265
+ :array-exp-ax2           54
+ :binary-propagations     2638
+ :conflicts               109
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   30
+ :decisions               2329
+ :del-clause              1097
+ :final-checks            4
+ :max-memory              3.69
+ :memory                  3.65
+ :minimized-lits          15
+ :mk-bool-var             2180
+ :mk-clause               2027
+ :num-allocs              20773
+ :num-checks              1
+ :propagations            4425
+ :restarts                1
+ :rlimit-count            33047
+ :time                    0.06)
+unsat
+b0 b1 b2 b3 a0 a1 
+(error "line 260 column 15: model is not available")
+(error "line 261 column 73: model is not available")
+(error "line 262 column 69: model is not available")
+(error "line 263 column 15: model is not available")
+(error "line 264 column 34: model is not available")
+(error "line 265 column 31: model is not available")
+(:added-eqs               7681
+ :arith-add-rows          450
+ :arith-assert-diseq      2195
+ :arith-assert-lower      1964
+ :arith-assert-upper      1406
+ :arith-bound-prop        322
+ :arith-conflicts         3
+ :arith-eq-adapter        1261
+ :arith-fixed-eqs         622
+ :arith-offset-eqs        569
+ :arith-pivots            56
+ :array-ax1               12
+ :array-ax2               660
+ :array-exp-ax2           54
+ :binary-propagations     4906
+ :conflicts               226
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   30
+ :decisions               3253
+ :del-clause              3386
+ :final-checks            4
+ :max-memory              3.71
+ :memory                  3.69
+ :minimized-lits          61
+ :mk-bool-var             4310
+ :mk-clause               3936
+ :num-allocs              25027
+ :num-checks              2
+ :propagations            9181
+ :restarts                2
+ :rlimit-count            49529
+ :time                    0.03)
+unsat
+b0 b1 b2 b3 a0 a1 a2 
+(error "line 272 column 15: model is not available")
+(error "line 273 column 73: model is not available")
+(error "line 274 column 69: model is not available")
+(error "line 275 column 15: model is not available")
+(error "line 276 column 41: model is not available")
+(error "line 277 column 40: model is not available")
+(:added-eqs               10369
+ :arith-add-rows          587
+ :arith-assert-diseq      2915
+ :arith-assert-lower      2575
+ :arith-assert-upper      1897
+ :arith-bound-prop        412
+ :arith-conflicts         3
+ :arith-eq-adapter        1786
+ :arith-fixed-eqs         773
+ :arith-offset-eqs        701
+ :arith-pivots            65
+ :array-ax1               12
+ :array-ax2               990
+ :array-exp-ax2           54
+ :array-ext-ax            1
+ :binary-propagations     6388
+ :conflicts               300
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   30
+ :decisions               3739
+ :del-clause              5240
+ :final-checks            4
+ :max-memory              3.71
+ :memory                  3.69
+ :minimized-lits          87
+ :mk-bool-var             5982
+ :mk-clause               5672
+ :num-allocs              28086
+ :num-checks              3
+ :propagations            11781
+ :restarts                2
+ :rlimit-count            59019
+ :time                    0.07)
+unsat
+b0 b1 b2 b3 a0 a1 a2 a3 
+(error "line 284 column 15: model is not available")
+(error "line 285 column 73: model is not available")
+(error "line 286 column 69: model is not available")
+(error "line 287 column 15: model is not available")
+(error "line 288 column 48: model is not available")
+(error "line 289 column 49: model is not available")
+(:added-eqs               12596
+ :arith-add-rows          713
+ :arith-assert-diseq      3573
+ :arith-assert-lower      3048
+ :arith-assert-upper      2377
+ :arith-bound-prop        511
+ :arith-conflicts         5
+ :arith-eq-adapter        2248
+ :arith-fixed-eqs         914
+ :arith-offset-eqs        815
+ :arith-pivots            87
+ :array-ax1               12
+ :array-ax2               1191
+ :array-exp-ax2           54
+ :array-ext-ax            1
+ :binary-propagations     7465
+ :conflicts               371
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   30
+ :decisions               4053
+ :del-clause              6434
+ :final-checks            4
+ :max-memory              3.71
+ :memory                  3.69
+ :minimized-lits          127
+ :mk-bool-var             7321
+ :mk-clause               6860
+ :num-allocs              30426
+ :num-checks              4
+ :propagations            13831
+ :restarts                2
+ :rlimit-count            66349
+ :time                    0.02)
+unsat
+b0 b1 b2 b3 a0 a1 a2 a3 a4 
+(error "line 296 column 15: model is not available")
+(error "line 297 column 73: model is not available")
+(error "line 298 column 69: model is not available")
+(error "line 299 column 15: model is not available")
+(error "line 300 column 55: model is not available")
+(error "line 301 column 58: model is not available")
+(:added-eqs               15068
+ :arith-add-rows          764
+ :arith-assert-diseq      4276
+ :arith-assert-lower      3483
+ :arith-assert-upper      2890
+ :arith-bound-prop        591
+ :arith-conflicts         5
+ :arith-eq-adapter        2723
+ :arith-fixed-eqs         1069
+ :arith-offset-eqs        937
+ :arith-pivots            91
+ :array-ax1               12
+ :array-ax2               1415
+ :array-exp-ax2           54
+ :array-ext-ax            1
+ :binary-propagations     8585
+ :conflicts               439
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   30
+ :decisions               4329
+ :del-clause              7269
+ :final-checks            4
+ :max-memory              3.72
+ :memory                  3.70
+ :minimized-lits          166
+ :mk-bool-var             8719
+ :mk-clause               7683
+ :num-allocs              32827
+ :num-checks              5
+ :propagations            15779
+ :restarts                2
+ :rlimit-count            73493
+ :time                    0.08)
+sat
+b0 b1 b2 b3 b4 a0 
+((lf 5))
+(((locFault 0) 1)
+ ((locFault 1) 2)
+ ((locFault 2) 3)
+ ((locFault 3) 4)
+ ((locFault 4) 5)
+ ((locFault 5) 5))
+(((eventFault 0) 1)
+ ((eventFault 1) 2)
+ ((eventFault 2) 6)
+ ((eventFault 3) 4)
+ ((eventFault 4) 3))
+((ln 2))
+(((loc 0) 1)
+ ((loc 1) 3))
+(((event 0) 1))
+(:added-eqs               17506
+ :arith-add-rows          916
+ :arith-assert-diseq      5218
+ :arith-assert-lower      4185
+ :arith-assert-upper      3580
+ :arith-bound-prop        674
+ :arith-conflicts         15
+ :arith-eq-adapter        3332
+ :arith-fixed-eqs         1220
+ :arith-offset-eqs        1058
+ :arith-pivots            113
+ :array-ax1               12
+ :array-ax2               1619
+ :array-exp-ax2           242
+ :array-ext-ax            1
+ :binary-propagations     10476
+ :conflicts               528
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   120
+ :decisions               6131
+ :del-clause              8796
+ :final-checks            16
+ :interface-eqs           2
+ :max-memory              3.81
+ :memory                  3.75
+ :minimized-lits          170
+ :mk-bool-var             10625
+ :mk-clause               9428
+ :num-allocs              37689
+ :num-checks              6
+ :propagations            18628
+ :restarts                2
+ :rlimit-count            92622
+ :time                    0.13)
+sat
+b0 b1 b2 b3 b4 a0 a1 
+((lf 5))
+(((locFault 0) 1)
+ ((locFault 1) 2)
+ ((locFault 2) 3)
+ ((locFault 3) 4)
+ ((locFault 4) 5)
+ ((locFault 5) 5))
+(((eventFault 0) 1)
+ ((eventFault 1) 2)
+ ((eventFault 2) 6)
+ ((eventFault 3) 4)
+ ((eventFault 4) 3))
+((ln 6))
+(((loc 0) 1)
+ ((loc 1) 2)
+ ((loc 2) 3))
+(((event 0) 1)
+ ((event 1) 2))
+(:added-eqs               23425
+ :arith-add-rows          1097
+ :arith-assert-diseq      7013
+ :arith-assert-lower      5627
+ :arith-assert-upper      4841
+ :arith-bound-prop        809
+ :arith-conflicts         25
+ :arith-eq-adapter        4144
+ :arith-fixed-eqs         1616
+ :arith-offset-eqs        1402
+ :arith-pivots            134
+ :array-ax1               12
+ :array-ax2               2052
+ :array-exp-ax2           310
+ :array-ext-ax            1
+ :binary-propagations     13371
+ :conflicts               661
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   160
+ :decisions               8360
+ :del-clause              10524
+ :final-checks            21
+ :interface-eqs           2
+ :max-memory              3.93
+ :memory                  3.88
+ :minimized-lits          186
+ :mk-bool-var             13031
+ :mk-clause               11586
+ :num-allocs              43707
+ :num-checks              7
+ :propagations            24834
+ :restarts                3
+ :rlimit-count            121464
+ :time                    0.16)
+sat
+b0 b1 b2 b3 b4 a0 a1 a2 
+((lf 5))
+(((locFault 0) 1)
+ ((locFault 1) 2)
+ ((locFault 2) 3)
+ ((locFault 3) 4)
+ ((locFault 4) 5)
+ ((locFault 5) 5))
+(((eventFault 0) 1)
+ ((eventFault 1) 2)
+ ((eventFault 2) 6)
+ ((eventFault 3) 4)
+ ((eventFault 4) 3))
+((ln 6))
+(((loc 0) 1)
+ ((loc 1) 2)
+ ((loc 2) 6)
+ ((loc 3) 7))
+(((event 0) 1)
+ ((event 1) 2)
+ ((event 2) 5))
+(:added-eqs               31977
+ :arith-add-rows          1400
+ :arith-assert-diseq      9520
+ :arith-assert-lower      7741
+ :arith-assert-upper      6462
+ :arith-bound-prop        1152
+ :arith-conflicts         29
+ :arith-eq-adapter        5249
+ :arith-fixed-eqs         2341
+ :arith-offset-eqs        2044
+ :arith-pivots            147
+ :array-ax1               12
+ :array-ax2               2810
+ :array-exp-ax2           342
+ :array-ext-ax            3
+ :binary-propagations     16922
+ :conflicts               819
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   180
+ :decisions               10553
+ :del-clause              13299
+ :final-checks            24
+ :interface-eqs           2
+ :max-memory              4.07
+ :memory                  4.02
+ :minimized-lits          267
+ :mk-bool-var             16376
+ :mk-clause               14786
+ :num-allocs              52280
+ :num-checks              8
+ :propagations            33299
+ :restarts                4
+ :rlimit-count            155111
+ :time                    0.11)
+sat
+b0 b1 b2 b3 b4 a0 a1 a2 a3 
+((lf 5))
+(((locFault 0) 1)
+ ((locFault 1) 2)
+ ((locFault 2) 3)
+ ((locFault 3) 4)
+ ((locFault 4) 5)
+ ((locFault 5) 5))
+(((eventFault 0) 1)
+ ((eventFault 1) 2)
+ ((eventFault 2) 6)
+ ((eventFault 3) 4)
+ ((eventFault 4) 3))
+((ln 6))
+(((loc 0) 1)
+ ((loc 1) 2)
+ ((loc 2) 6)
+ ((loc 3) 7)
+ ((loc 4) 8))
+(((event 0) 1)
+ ((event 1) 2)
+ ((event 2) 5)
+ ((event 3) 2))
+(:added-eqs               33542
+ :arith-add-rows          1561
+ :arith-assert-diseq      9989
+ :arith-assert-lower      8166
+ :arith-assert-upper      6742
+ :arith-bound-prop        1224
+ :arith-conflicts         31
+ :arith-eq-adapter        5561
+ :arith-fixed-eqs         2492
+ :arith-offset-eqs        2188
+ :arith-pivots            150
+ :array-ax1               12
+ :array-ax2               2995
+ :array-exp-ax2           372
+ :array-ext-ax            3
+ :binary-propagations     17455
+ :conflicts               842
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   200
+ :decisions               11264
+ :del-clause              15094
+ :final-checks            27
+ :interface-eqs           2
+ :max-memory              4.07
+ :memory                  4.00
+ :minimized-lits          271
+ :mk-bool-var             17609
+ :mk-clause               15637
+ :num-allocs              56182
+ :num-checks              9
+ :propagations            34338
+ :restarts                4
+ :rlimit-count            162966
+ :time                    0.01)
+sat
+b0 b1 b2 b3 b4 a0 a1 a2 a3 a4 
+((lf 5))
+(((locFault 0) 1)
+ ((locFault 1) 2)
+ ((locFault 2) 3)
+ ((locFault 3) 4)
+ ((locFault 4) 5)
+ ((locFault 5) 5))
+(((eventFault 0) 1)
+ ((eventFault 1) 2)
+ ((eventFault 2) 6)
+ ((eventFault 3) 4)
+ ((eventFault 4) 3))
+((ln 6))
+(((loc 0) 1)
+ ((loc 1) 2)
+ ((loc 2) 6)
+ ((loc 3) 7)
+ ((loc 4) 8)
+ ((loc 5) 8))
+(((event 0) 1)
+ ((event 1) 2)
+ ((event 2) 5)
+ ((event 3) 2)
+ ((event 4) 2))
+(:added-eqs               42484
+ :arith-add-rows          2254
+ :arith-assert-diseq      12358
+ :arith-assert-lower      10379
+ :arith-assert-upper      8277
+ :arith-bound-prop        1706
+ :arith-conflicts         34
+ :arith-eq-adapter        6753
+ :arith-fixed-eqs         3358
+ :arith-offset-eqs        3075
+ :arith-pivots            195
+ :array-ax1               12
+ :array-ax2               3840
+ :array-exp-ax2           387
+ :array-ext-ax            3
+ :binary-propagations     20797
+ :conflicts               977
+ :datatype-accessor-ax    20
+ :datatype-constructor-ax 20
+ :datatype-occurs-check   210
+ :decisions               13537
+ :del-clause              17803
+ :final-checks            29
+ :interface-eqs           2
+ :max-memory              4.20
+ :memory                  4.15
+ :minimized-lits          300
+ :mk-bool-var             21266
+ :mk-clause               19483
+ :num-allocs              65211
+ :num-checks              10
+ :propagations            42468
+ :restarts                5
+ :rlimit-count            195975
+ :time                    0.13)
