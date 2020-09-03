@@ -230,7 +230,7 @@ class GetResult():
 
             print(result)
             for i in range(0,len(NP)):
-                print(str(i+1) + ". critical pair possiablely :")
+                print(str(i+1) + ". possible critical pair:")
                 print("the length of faulty path is: ", str(FaultyPathLengthList[i]))
                 print(FP[i])
                 print(NP[i])
