@@ -54,7 +54,7 @@ Bound 5 K_value 2 observable={o1,o2,o3} unobservable={un1,un2} fault={f}
 
 UNSAT
 
-1. critical pair possiablely :
+1. possibel critical pair :
 
 the length of faulty path is:  4
 
@@ -64,7 +64,7 @@ the length of faulty path is:  4
 
 blocked in:   'o3'
 
-2. critical pair possiablely :
+2. possible critical pair :
 
 the length of faulty path is:  5
 
