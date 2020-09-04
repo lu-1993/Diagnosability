@@ -17,12 +17,12 @@ formula, i.e., a critical pair which is a pair of trajectories of the
 system where only one of them contains the fault while both of them
 have the same observations.
 
-An incremental version is also available in the IncrementDiagSMT
+An optimized version is also available in the OptimizedDiagSMT
 package, a python package that generates automatically smt formula in
-an incremental way in terms of path length for this problem with
+an optimized way in terms of path length for this problem with
 different parameters for a given system. To obtain the verification
 result, it is enough to run the python file main.py that generates smt
-formula, which is checked by calling z3 in an incremental way, whose
+formula, which is checked by calling z3 in an optimized way, whose
 results are then analyzed before returning the final results.
 
 for example in model.txt. 
