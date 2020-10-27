@@ -1,0 +1,241 @@
+'''
+/**
+ * The file to generate model (finite automata).
+ * The purely number version stored in <file>transtion.txt</file>.
+ * The original version stored in <file>GenerateModel</file>.
+ *
+ * @author Lulu HE
+ * @Email helulu@lri.fr
+**/
+'''
+
+import os
+import random
+from collections import defaultdict
+
+initstate = int(input('pls input the init state:'))
+statenum = int(input('pls input the state number:'))
+branchnum = int(input('pls input the max branch of every state:'))
+obevent = int(input('pls input the observabel number:'))
+unevent = int(input('pls input the un-observabel number:'))
+fault = int(input('pls input the fault(one) transition number:'))
+selfcycle = int(input('pls input the self-cycle number:'))
+cycle = int(input('pls input the cycle number:'))
+
+eventotal = obevent + unevent
+
+statelist = []
+stateselfcyclelist = []
+statecyclelist = []
+
+# dictrans = defaultdict(list)
+# key:end_state value:start_state
+dictrans = {}
+
+
+#Store branch for each state
+branch = {}
+#branch.setdefault(1,[]).append(2)
+
+#lenkey = len(branch[1])
+#print("lenkdy:",lenkey)
+
+# key:start_state value:end_state
+dictrans_order = {}
+
+transition_list = []
+
+event = str(random.randint(1, eventotal))
+statelist.append(initstate)
+
+
+# create state transitions
+# branch for every state is B
+
+for i in range(initstate + 1, statenum + 1):
+    endstate = str(i)
+    startstate = str(random.choice(statelist))
+
+    while startstate in branch.keys() and len(branch[startstate]) == branchnum:
+        statelist.remove(int(startstate))
+        startstate = str(random.choice(statelist))
+
+    statelist.append(i)
+    event = str(random.randint(1, eventotal))
+    trans = startstate + ' ' + endstate + ' ' + event
+    # dictrans.setdefault(endstate,[]).append(startstate)
+    dictrans.setdefault(endstate, startstate)
+    # dictrans[endstate].append(startstate)
+    transition_state = startstate + ' ' + endstate + ' ' + event + '\n'
+    #transtxt.write(transition_state)
+    transition_list.append(transition_state)
+    dictrans_order.setdefault(startstate, endstate)
+
+    branch.setdefault(startstate,[]).append(i)
+
+
+# create selfcycle
+
+# avoid re-state cycle. eg 3,3,2 and 3,3,3
+
+stateselfcyclelist = statelist.copy()
+
+
+for i in range(0, selfcycle):
+    selfstate = str(random.choice(stateselfcyclelist))
+
+    while selfstate in branch.keys() and len(branch[selfstate]) == branchnum:
+        stateselfcyclelist.remove(int(selfstate))
+        selfstate = str(random.choice(stateselfcyclelist))
+
+    event = str(random.randint(1, obevent))
+    transition_cycleself = selfstate + ' ' + selfstate + ' ' + event + '\n'
+    #transtxt.write(transition_cycleself)
+    transition_list.append(transition_cycleself)
+    stateselfcyclelist.remove(int(selfstate))
+    dictrans_order.setdefault(selfstate, selfstate)
+    branch.setdefault(selfstate, []).append(int(selfstate))
+
+# crate cycle
+listraj = []
+statecyclelist = stateselfcyclelist.copy()
+if 1 in statecyclelist:
+    statecyclelist.remove(1)
+
+
+for i in range(0, cycle):
+    # print("i:",i)
+    cyclestate = str(random.choice(statecyclelist))
+    flag = str(dictrans[cyclestate])
+    event = str(random.randint(1, obevent))
+    # print("-----"+cyclestate)
+    # print("====="+flag)
+
+    while cyclestate in branch.keys() and len(branch[cyclestate]) == branchnum:
+        statecyclelist.remove(int(cyclestate))
+        cyclestate = str(random.choice(statecyclelist))
+
+
+    if flag == str(initstate):
+        transition_cycle = cyclestate + ' ' + flag + ' ' + event + '\n'
+        #transtxt.write(transition_cycle)
+        transition_list.append(transition_cycle)
+        statecyclelist.remove(int(cyclestate))
+        dictrans_order.setdefault(cyclestate, flag)
+        branch.setdefault(cyclestate, []).append(int(flag))
+    # transtxt.write(cyclestate + ' ' + flag + ' ' + event + '\n')
+    # statecyclelist.remove(int(cyclestate))
+
+    else:
+        while flag != str(initstate):
+            # print(flag)
+            # flag = dictrans[cyclestate]
+            listraj.append(flag)
+            flag = dictrans[flag]
+        listraj.append(initstate)
+
+        flagstate = str(random.choice(listraj))
+        transition_cycle = cyclestate + ' ' + flagstate + ' ' + event + '\n'
+        #transtxt.write(transition_cycle)
+        transition_list.append(transition_cycle)
+        dictrans_order.setdefault(cyclestate, flagstate)
+        statecyclelist.remove(int(cyclestate))
+        listraj.clear()
+        branch.setdefault(cyclestate, []).append(int(flagstate))
+
+    # statecyclelist.remove(int(cyclestate))
+
+# live FA
+
+for i in range(initstate, statenum + 1):
+    event = str(random.randint(1, obevent))
+    if str(i) not in dictrans_order.keys():
+        transition_live = str(i) + ' ' + str(i) + ' ' + event + '\n'
+        #transtxt.write(transition_live)
+        transition_list.append(transition_live)
+        dictrans_order.setdefault(str(i), str(i))
+        branch.setdefault(str(i), []).append(i)
+
+
+# add fault
+# transtxt = open('transtxt','w')
+
+
+faultevent = str(eventotal+1)
+
+for i in range(0,fault):
+
+    faultrans = random.choice(transition_list)
+    transition_list.remove(faultrans)
+    newstart = faultrans.split( )[0]
+    newend = faultrans.split( )[1]
+    event = faultevent
+
+    # avoid fault transition is self cycle
+    while newstart == newend :
+        faultrans = random.choice(transition_list)
+        transition_list.remove(faultrans)
+        newstart = faultrans.split()[0]
+        newend = faultrans.split()[1]
+
+    new = newstart + ' ' + newend + ' ' + event + '\n'
+
+
+    transition_list.append(new)
+
+transtxt = open('transition.txt', 'w')
+
+for i in range(0,len(transition_list)):
+    transss = transition_list[i]
+    transtxt.write(transss)
+
+transtxt.close()
+
+file_read = open("transition.txt","r")
+file_write = open("GenerateModel.txt","w")
+
+ObservableEventNum = obevent
+UnobservableEventNum = unevent
+Fault = fault
+
+
+ListTransition = []  # store transtions after translate
+transition = file_read.readline() # read generate transition
+while transition:
+    transtitonStr = ""
+
+    FirstState = transition.split(" ")[0]
+    EndState = transition.split(" ")[1]
+    Event = transition.split(" ")[2].split("\n")[0]
+
+    if int(Event) <= ObservableEventNum:
+        TranslateEvent = "o" + Event
+
+    elif int(Event) > ObservableEventNum and int(Event) <= ObservableEventNum + UnobservableEventNum:
+        TranslateEvent = "un" + str(int(Event) - int(ObservableEventNum))
+
+    else:
+        TranslateEvent = "f"
+
+    transtitonStr = FirstState + " " + TranslateEvent + " " + EndState + "\n"
+    ListTransition.append(transtitonStr)
+    transition = file_read.readline()
+
+
+for transition in ListTransition:
+    file_write.write(transition)
+
+file_read.close()
+file_write.close()
+
+
+
+
+
+
+
+
+
+
+
+
