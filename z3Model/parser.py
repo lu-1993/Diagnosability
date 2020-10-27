@@ -6,14 +6,14 @@ class Parser:
         pass
 
 
-        def parse(self, nameFile : str):
+           def parse(self, nameFile : str):
 
         file = open(nameFile, "r")
         context = file.readlines()
 
-        initState = context[0].split(" ")[1]
-        bound = context[0].split(" ")[3]
-        k = context[0].split(" ")[5]
+        initState = int(context[0].split(" ")[1])
+        bound = int(context[0].split(" ")[3])
+        k = int(context[0].split(" ")[5])
 
         transitionList = []
         for i in range(1, len(context)):
@@ -42,4 +42,3 @@ class Parser:
         file.close()
 
         return initState,transitionList,bound,k
-
