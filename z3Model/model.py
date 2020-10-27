@@ -14,14 +14,13 @@ class Z3Model:
     # automaton description.
     initState = 0
     transitionList = []
-    limitFaulty = 0
-    limitNoObser = 0
     observableId = []
     nextTransition = []
     possibleInitialTransition = []
     idxAssum = 0
 
     # z3 variables.
+    labelTransition = []
     faultyPath = [ Int("fp_1") ]
     normalPath = [ Int("np_1") ]
     idTransitionFaultyPath = [ Int("idt_fp_1") ]
@@ -48,16 +47,12 @@ class Z3Model:
         # parse the file and store the automaton
         p = Parser()
         self.initState, self.transitionList, self.BOUND, self.K = p.parse(nameFile)
-        self.transitionList.sort(key=lambda t: t[2])
+        # self.transitionList.sort(key=lambda t: t[2])
 
         self.nextTransition = [[] for i in range(len(self.transitionList))]
         for i in range(len(self.transitionList)):
             # fix the limit and store the id of the observable transitions.
-            if self.transitionList[i][2] == 0:
-                self.limitFaulty = i + 1
-            elif self.transitionList[i][2] == 1:
-                self.limitNoObser = i + 1
-            else:
+            if self.transitionList[i][2] > 1:
                 if self.transitionList[i][2] not in self.observableId:
                     self.observableId.append(self.transitionList[i][2])
 
@@ -71,14 +66,21 @@ class Z3Model:
             if self.transitionList[i][0] == self.initState:
                 self.possibleInitialTransition.append(i)
 
+        # we assign a status for each transition.
+        self.labelTransition = [ Int("statusTransition_" + str(i+1)) for i in range(len(self.transitionList))]
+
+        # The status for a transition can be 0 for a fault, 1 for an non observable and 2 for an observable event.
+        for x in self.labelTransition:
+            self.s.add(And(x >= 0, x <= len(self.observableId) + 2))
+
         # constraint on the first transition.
         self.s.add(Or([self.faultyPath[0] == v for v in self.possibleInitialTransition]))
         self.s.add(Or([self.normalPath[0] == v for v in self.possibleInitialTransition]))
-        self.s.add(self.normalPath[0] >= self.limitFaulty)
+        self.s.add(self.idTransitionNormalPath[0] != 0)
         self.s.add(self.nopFaultyPath[0] == False)
         self.s.add(self.nopNormalPath[0] == False)
         self.s.add(self.delta == self.bound - self.k - 1)
-        self.s.add(self.faultOccursByThePast[0] == (self.faultyPath[0] < self.limitFaulty))
+        self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == 0))
         self.s.add(Implies(self.delta <= 0, self.faultOccursByThePast[0]))
         self.s.add(self.bound >= 0)
         self.s.add(self.k >= 0)
@@ -96,15 +98,11 @@ class Z3Model:
         :type pos: int
         """
         # two paths have to agree on the observables.
-        # first we collect the id:
-        self.s.add(Implies(self.faultyPath[pos] < self.limitNoObser, self.idTransitionFaultyPath[pos] == 0))
-        self.s.add(Implies(self.normalPath[pos] < self.limitNoObser, self.idTransitionNormalPath[pos] == 0))
+        for j in range(len(self.transitionList)):
+            self.s.add(Implies(self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.labelTransition[j]))
+            self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.labelTransition[j]))
 
-        for j in range(self.limitNoObser, len(self.transitionList)):
-            self.s.add(Implies(self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.transitionList[j][2]))
-            self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.transitionList[j][2]))
-
-        # second we have an identical id
+        # it is useless to go more than k after the first occurrence of the fault (=> we do not care if the critical pair is divergente).
         self.s.add(Or(self.cptFaultOccursByThePast[pos] - 1 > self.k, self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
 
 
@@ -139,25 +137,23 @@ class Z3Model:
         self.s.add(self.idTransitionFaultyPath[idx] < len(self.observableId) + 2)
         self.s.add(self.idTransitionNormalPath[idx] < len(self.observableId) + 2)
 
-        # verify that transitions are correct.
+        # verify that transitions are correct regarding the label.
         for j in range(len(self.transitionList)):
-            if self.transitionList[j][2] >= 2:
-                self.s.add(Implies(self.faultyPath[idx-1] == j, Or([self.faultyPath[idx] == n for n in self.nextTransition[j]])))
-                self.s.add(Implies(self.normalPath[idx-1] == j, Or([self.normalPath[idx] == n for n in self.nextTransition[j]])))
-            else:
-                # we can always repeat no observable transition to simulate NOP.
-                self.s.add(Implies(self.faultyPath[idx-1] == j, Or(self.faultyPath[idx] == j, Or([self.faultyPath[idx] == n for n in self.nextTransition[j]]))))
-                self.s.add(Implies(self.normalPath[idx-1] == j, Or(self.normalPath[idx] == j, Or([self.normalPath[idx] == n for n in self.nextTransition[j]]))))
+            self.s.add(Implies(And(self.faultyPath[idx-1] == j, self.labelTransition[idx-1] >= 0), Or([self.faultyPath[idx] == n for n in self.nextTransition[j]])))
+            self.s.add(Implies(And(self.normalPath[idx-1] == j, self.labelTransition[idx-1] >= 0), Or([self.normalPath[idx] == n for n in self.nextTransition[j]])))
+            self.s.add(Implies(And(self.faultyPath[idx-1] == j, self.labelTransition[idx-1] >= 0), Or(self.faultyPath[idx] == j, Or([self.faultyPath[idx] == n for n in self.nextTransition[j]]))))
+            self.s.add(Implies(And(self.normalPath[idx-1] == j, self.labelTransition[idx-1] >= 0), Or(self.normalPath[idx] == j, Or([self.normalPath[idx] == n for n in self.nextTransition[j]]))))
+
 
         # no fault in the normal path.
-        self.s.add(self.normalPath[idx] >= self.limitFaulty)
+        self.s.add(self.idTransitionNormalPath[idx] != 0)
 
         # we add the constraints that specify the id of the transition
         self.addConstraintOnIdTransition(idx)
 
         # specify if the transition is a nop
-        self.s.add(self.nopFaultyPath[idx] == (And(self.faultyPath[idx] < self.limitNoObser, self.faultyPath[idx-1] == self.faultyPath[idx])))
-        self.s.add(self.nopNormalPath[idx] == (And(self.normalPath[idx] < self.limitNoObser, self.normalPath[idx-1] == self.normalPath[idx])))
+        self.s.add(self.nopFaultyPath[idx] == (And(self.idTransitionFaultyPath[idx] < 2, self.faultyPath[idx-1] == self.faultyPath[idx])))
+        self.s.add(self.nopNormalPath[idx] == (And(self.idTransitionNormalPath[idx] < 2, self.normalPath[idx-1] == self.normalPath[idx])))
 
         # we want to progress
         self.s.add(Or(Not(self.nopFaultyPath[idx]), Not(self.nopNormalPath[idx])))
@@ -167,7 +163,7 @@ class Z3Model:
         self.s.add(Implies(self.nopNormalPath[idx-1], Or(self.nopNormalPath[idx], self.idTransitionNormalPath[idx] != 0)))
 
         # the dynamic of the fault list of variables
-        self.s.add(Or(self.faultOccursByThePast[idx-1], self.faultyPath[idx] < self.limitFaulty) == self.faultOccursByThePast[idx])
+        self.s.add(Or(self.faultOccursByThePast[idx-1], self.idTransitionFaultyPath[idx] == 1) == self.faultOccursByThePast[idx])
 
         # we have a fault soon enough.
         self.s.add(Implies(self.delta <= idx, self.faultOccursByThePast[idx]))
@@ -192,8 +188,6 @@ class Z3Model:
             print(i, ':', self.nextTransition[i])
 
         print("possible init transition: ", self.possibleInitialTransition)
-        print("limitFaulty:", self.limitFaulty)
-        print("limitNoObser:", self.limitNoObser)
         print("BOUND:", self.BOUND)
         print("K:", self.K)
 
@@ -283,7 +277,9 @@ class Z3Model:
         :param model: the model we want to check.
         :type model: a z3 model.
         """
-        print("z3 array (size =", len(self.faultyPath),")")
+        print("--------------------")
+        print("z3 arrays (size = " + str(len(self.faultyPath)) + ")")
+        print("--------------------")
         print("faultyPath: ")
         self.printOneIntArray(model, self.faultyPath)
         print("normalPath: ")
@@ -300,6 +296,8 @@ class Z3Model:
         self.printOneBoolArray(model, self.nopNormalPath)
         print("faultOccursByThePast: ")
         self.printOneBoolArray(model, self.faultOccursByThePast)
+        print("labelTransition")
+        self.printOneIntArray(model, self.labelTransition)
         print()
 
         print("Delta:")
@@ -333,10 +331,15 @@ class Z3Model:
         Run the main program.
         """
         assumK = Bool("k" + str(self.idxAssum))
-        self.s.add(Implies(assumK, self.k == 1))
+        self.s.add(Implies(assumK, self.k == self.K))
+
+        # run in normal mode
+        for i in range(len(self.transitionList)):
+            self.s.add(self.labelTransition[i] == self.transitionList[i][2])
 
         cpt = 1
         while cpt < self.BOUND:
+            cpt += 1
             self.incBound()
 
             # assumption:
@@ -349,10 +352,11 @@ class Z3Model:
                 m = self.s.model()
                 # self.checkModel(m)
                 self.printModel(m)
-
-                break
+                return
             else:
-                print("it is unsat")
+                print("Increase the bound:", len(self.faultyPath) + 1)
+
+        print("The problem is UNSAT")
 
 # the automata.
 assert(len(sys.argv) == 2)
