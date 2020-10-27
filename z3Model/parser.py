@@ -6,7 +6,7 @@ class Parser:
         pass
 
 
-           def parse(self, nameFile : str):
+    def parse(self, nameFile : str):
 
         file = open(nameFile, "r")
         context = file.readlines()
