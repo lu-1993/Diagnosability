@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 class Parser:
-    def __init__(self,nameFile : str):
-        self.file = nameFile
+    def __init__(self):
+        pass
 
 
-    def parse(self):
+    def parse(self, nameFile : str):
 
-        file = open(self.file, "r")
+        file = open(nameFile, "r")
         context = file.readlines()
 
         initState = context[0].split(" ")[1]
@@ -33,6 +33,7 @@ class Parser:
             transition.append(finalState)
             transition.append(event)
 
+
             transitionList.append(transition)
 
 
@@ -40,6 +41,4 @@ class Parser:
 
         return initState,transitionList
 
-
-        #return 0, [(0,1,2),(1,2,1),(1,2,0),(2,3,1),(2,4,0),(3,3,3),(4,4,4)]
 
