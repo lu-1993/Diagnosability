@@ -1,0 +1,97 @@
+first group: effection of observable and unobservable
+
+
+non-diagnosable:
+Initial_state 0 Bound 10 K_value 7 observable={o1,o2} unobservable={un1,un2,un3,un4} fault={f}
+0 o1 1
+1 f 2
+2 un1 3
+3 un2 4
+4 o2 4
+1 un3 5
+5 un4 6
+6 o1 7
+7 o2 7
+
+diagnosable:
+Initial_state 0 Bound 10 K_value 7 observable={o1,o2} unobservable={un1,un2,un3,un4} fault={f}
+0 o1 1
+1 f 2
+2 un1 3
+3 un2 4
+4 o3 4
+1 un3 5
+5 un4 6
+6 o1 7
+7 o2 7
+
+
+second group: effection of K 
+
+
+non-diagnosable:
+Initial_state 0 Bound 5 K_value 2 observable={o1,o2,o3} unobservable={un1,un2} fault={f}
+0 un1 1
+1 f 2
+2 o1 3
+3 o2 4
+4 o3 4
+0 o1 5
+5 un2 6
+6 o2 7
+7 o2 7
+
+diagnosable:
+Initial_state 0 Bound 5 K_value 3 observable={o1,o2,o3} unobservable={un1,un2} fault={f}
+0 un1 1
+1 f 2
+2 o1 3
+3 o2 4
+4 o3 4
+0 o1 5
+5 un2 6
+6 o2 7
+7 o2 7
+
+
+third group: effection of B
+
+
+non-diagnosable:
+Initial_state 0 Bound 4 K_value 2 observable={o1,o2,o3} unobservable={un1,un2} fault={f}
+0 un1 1
+1 f 2
+2 o1 3
+3 o2 4
+4 o3 4
+0 o1 5
+5 un2 6
+6 o2 7
+7 o2 7
+
+diagnosable:
+Initial_state 0 Bound 5 K_value 2 observable={o1,o2,o3} unobservable={un1,un2} fault={f}
+0 un1 1
+1 f 2
+2 o1 3
+3 o2 4
+4 o3 4
+0 o1 5
+5 un2 6
+6 o2 7
+7 o2 7
+
+
+fourth group: effection of cycle
+
+non-diagnosable
+Initial_state 0 Bound 50 K_value 2 observable={o1} unobservable={} fault={f}
+0 o1 0
+0 o1 1
+1 f 2
+2 o1 2
+
+
+
+
+
