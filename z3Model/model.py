@@ -29,10 +29,14 @@ class Z3Model:
     nopFaultyPath = [ Bool("nop_fp_1") ]
     nopNormalPath = [ Bool("nop_np_1") ]
     faultOccursByThePast = [ Bool("faultOccurs_1") ]
+    cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]
     bound = Int("bound")
     k = Int("k")
     delta = Int("delta")
 
+    # parameter
+    BOUND = 0
+    K = 0
 
     def __init__(self, nameFile):
         """
@@ -43,7 +47,7 @@ class Z3Model:
         """
         # parse the file and store the automaton
         p = Parser()
-        self.initState, self.transitionList = p.parse(nameFile)
+        self.initState, self.transitionList, self.BOUND, self.K = p.parse(nameFile)
         self.transitionList.sort(key=lambda t: t[2])
 
         self.nextTransition = [[] for i in range(len(self.transitionList))]
@@ -70,6 +74,7 @@ class Z3Model:
         # constraint on the first transition.
         self.s.add(Or([self.faultyPath[0] == v for v in self.possibleInitialTransition]))
         self.s.add(Or([self.normalPath[0] == v for v in self.possibleInitialTransition]))
+        self.s.add(self.normalPath[0] >= self.limitFaulty)
         self.s.add(self.nopFaultyPath[0] == False)
         self.s.add(self.nopNormalPath[0] == False)
         self.s.add(self.delta == self.bound - self.k - 1)
@@ -77,6 +82,7 @@ class Z3Model:
         self.s.add(Implies(self.delta <= 0, self.faultOccursByThePast[0]))
         self.s.add(self.bound >= 0)
         self.s.add(self.k >= 0)
+        self.s.add(self.cptFaultOccursByThePast[0] == self.faultOccursByThePast[0])
 
         self.addConstraintOnIdTransition(0)
 
@@ -99,7 +105,7 @@ class Z3Model:
             self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.transitionList[j][2]))
 
         # second we have an identical id
-        self.s.add(self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos])
+        self.s.add(Or(self.cptFaultOccursByThePast[pos] - 1 > self.k, self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
 
 
     def incVariableList(self):
@@ -114,6 +120,7 @@ class Z3Model:
         self.nopFaultyPath.append(Bool("nop_fp_" + str(idx)))
         self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
         self.nopNormalPath.append(Bool("nop_np_" + str(idx)))
+        self.cptFaultOccursByThePast.append(Int("cptFaultOccurs_" + str(idx)))
 
 
     def incBound(self):
@@ -146,15 +153,7 @@ class Z3Model:
         self.s.add(self.normalPath[idx] >= self.limitFaulty)
 
         # we add the constraints that specify the id of the transition
-        self.s.add(Implies(self.faultyPath[idx] < self.limitNoObser, self.idTransitionFaultyPath[idx] == 0))
-        self.s.add(Implies(self.normalPath[idx] < self.limitNoObser, self.idTransitionNormalPath[idx] == 0))
-
-        for j in range(self.limitNoObser, len(self.transitionList)):
-            self.s.add(Implies(self.faultyPath[idx] == j, self.idTransitionFaultyPath[idx] == self.transitionList[j][2]))
-            self.s.add(Implies(self.normalPath[idx] == j, self.idTransitionNormalPath[idx] == self.transitionList[j][2]))
-
-        # we ensure that the id of the transition are the same for the normal and faulty paths (agree on the observable).
-        self.s.add(self.idTransitionFaultyPath[idx] == self.idTransitionNormalPath[idx])
+        self.addConstraintOnIdTransition(idx)
 
         # specify if the transition is a nop
         self.s.add(self.nopFaultyPath[idx] == (And(self.faultyPath[idx] < self.limitNoObser, self.faultyPath[idx-1] == self.faultyPath[idx])))
@@ -170,9 +169,11 @@ class Z3Model:
         # the dynamic of the fault list of variables
         self.s.add(Or(self.faultOccursByThePast[idx-1], self.faultyPath[idx] < self.limitFaulty) == self.faultOccursByThePast[idx])
 
-        # # we have a fault soon enough.
+        # we have a fault soon enough.
         self.s.add(Implies(self.delta <= idx, self.faultOccursByThePast[idx]))
 
+        # set the counter since when the fault occurs.
+        self.s.add(self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + self.faultOccursByThePast[idx])
 
 
     def printAutomatonInfo(self):
@@ -183,6 +184,8 @@ class Z3Model:
         print("automata:")
         for i in range(len(self.transitionList)):
             print(i, ":", self.transitionList[i])
+
+        print("initial state:", self.initState)
 
         print("next transition:")
         for i in range(len(self.nextTransition)):
@@ -212,7 +215,7 @@ class Z3Model:
         delta = int(model.evaluate(self.delta).as_long())
         bound = int(model.evaluate(self.bound).as_long())
         k = int(model.evaluate(self.k).as_long())
-        assert(delta == (bound - k))
+        assert(delta == (bound - k - 1))
 
         previous = None
         for i in range(len(self.faultyPath)):
@@ -236,53 +239,112 @@ class Z3Model:
                 assert(nop or self.transitionList[previous][1] != self.transitionList[v][0])
             previous = v
 
+    def printOneIntArray(self, model, array):
+        """
+        Print a list of z3 variables.
+
+        :param model: the model we want to check.
+        :type model: a z3 model.
+        :param array: the list of z3 variables we want to print out.
+        :type model: list of integer z3 variables.
+        """
+        for x in array:
+            print('{:-6}'.format(int(model.evaluate(x).as_long())),end=" ")
+        print()
+
+    def printOneBoolArray(self, model, array):
+        """
+        Print a list of z3 variables.
+
+        :param model: the model we want to check.
+        :type model: a z3 model.
+        :param array: the list of z3 variables we want to print out.
+        :type model: list of boolean z3 variables.
+        """
+        for x in array:
+            r = model.evaluate(x)
+            id = 0
+            if r:
+                id = 1
+            print('{:-6}'.format(id),end=" ")            
+        print()
+
+
+    def printModel(self, model):
+        """
+        Print the model. That means information about the z3 variables and a output formal
+        that can be considered for the checker.
+
+        :param model: the model we want to check.
+        :type model: a z3 model.
+        """
+        print("z3 array (size =", len(self.faultyPath),")")
+        print("faultyPath: ")
+        self.printOneIntArray(model, self.faultyPath)
+        print("normalPath: ")
+        self.printOneIntArray(model, self.normalPath)
+        print("idTransitionFaultyPath: ")
+        self.printOneIntArray(model, self.idTransitionFaultyPath)
+        print("idTransitionNormalPath: ")
+        self.printOneIntArray(model, self.idTransitionNormalPath)
+        print("cptFaultOccursByThePast: ")
+        self.printOneIntArray(model, self.cptFaultOccursByThePast)
+        print("nopFaultyPath:")
+        self.printOneBoolArray(model, self.nopFaultyPath)
+        print("nopNormalPath: ")
+        self.printOneBoolArray(model, self.nopNormalPath)
+        print("faultOccursByThePast: ")
+        self.printOneBoolArray(model, self.faultOccursByThePast)
+        print()
+
+        print("Delta:")
+        delta = int(model.evaluate(self.delta).as_long())
+        bound = int(model.evaluate(self.bound).as_long())
+        k = int(model.evaluate(self.k).as_long())
+        print(delta, "=", bound, "-", k, "-", 1)
+        print()
+
+        # print the paths
+        print("Faulty path:")
+        for i in range(len(self.faultyPath)):
+            v = int(model.evaluate(self.faultyPath[i]).as_long())
+            id = int(model.evaluate(self.idTransitionFaultyPath[i]).as_long())
+            nop = model.evaluate(self.nopFaultyPath[i])
+            inFault = model.evaluate(self.faultOccursByThePast[i])
+            print(self.transitionList[v],id,nop,inFault)
+        print()
+
+        print("Normal path:")
+        for i in range(len(self.normalPath)):
+            v = int(model.evaluate(self.normalPath[i]).as_long())
+            id = int(model.evaluate(self.idTransitionNormalPath[i]).as_long())
+            nop = model.evaluate(self.nopNormalPath[i])
+            print(self.transitionList[v],id,nop)
+        print()
 
     def run(self):
         """
         Run the main program.
         """
-        for i in range(4):
+        while True:
             self.incBound()
 
-        # assumption:
-        self.idxAssum += 1
-        assumB = Bool("b" + str(self.idxAssum))
-        self.s.add(Implies(assumB, self.bound == len(self.faultyPath)))
-        assumK = Bool("k" + str(self.idxAssum))
-        self.s.add(Implies(assumK, self.k == 1))
-        self.printZ3Constraints()
+            # assumption:
+            self.idxAssum += 1
+            assumB = Bool("b" + str(self.idxAssum))
+            self.s.add(Implies(assumB, self.bound == len(self.faultyPath)))
+            assumK = Bool("k" + str(self.idxAssum))
+            self.s.add(Implies(assumK, self.k == 1))
 
-        res = self.s.check(assumB, assumK)
-        if res == sat:
-            m = self.s.model()
-            # self.checkModel(m)
+            res = self.s.check(assumB, assumK)
+            if res == sat:
+                m = self.s.model()
+                # self.checkModel(m)
+                self.printModel(m)
 
-            print("Delta:")
-            delta = int(m.evaluate(self.delta).as_long())
-            bound = int(m.evaluate(self.bound).as_long())
-            k = int(m.evaluate(self.k).as_long())
-            print(delta, "=", bound, "-", k, "-", 1)
-            print()
-
-            # print the paths
-            print("Faulty path:")
-            for i in range(len(self.faultyPath)):
-                v = int(m.evaluate(self.faultyPath[i]).as_long())
-                id = int(m.evaluate(self.idTransitionFaultyPath[i]).as_long())
-                nop = m.evaluate(self.nopFaultyPath[i])
-                inFault = m.evaluate(self.faultOccursByThePast[i])
-                print(self.transitionList[v],id,nop,inFault)
-            print()
-
-            print("Normal path:")
-            for i in range(len(self.normalPath)):
-                v = int(m.evaluate(self.normalPath[i]).as_long())
-                id = int(m.evaluate(self.idTransitionNormalPath[i]).as_long())
-                nop = m.evaluate(self.nopNormalPath[i])
-                print(self.transitionList[v],id,nop)
-            print()
-        else:
-            print("it is unsat")
+                break
+            else:
+                print("it is unsat")
 
 # the solver instance.
 
