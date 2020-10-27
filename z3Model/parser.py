@@ -15,6 +15,8 @@ class Parser:
 
         transitionList = []
         for i in range(1, len(context)):
+            transition = []
+
 
             sourceState = int(context[i].split(" ")[0]) - int(initState)
             event = context[i].split(" ")[1]
@@ -27,16 +29,20 @@ class Parser:
             else:
                 event = int(event.strip('o')) + 1
 
-            transition = (sourceState, finalState, event)
+            transition.append(sourceState)
+            transition.append(finalState)
+            transition.append(event)
+
 
             transitionList.append(transition)
 
-        model = initState + " " + str(transitionList)
-        
+
         file.close()
 
-        return model
+        return initState,transitionList
 
+
+print(Parser("input.txt").parse())
 
 
         #return 0, [(0,1,2),(1,2,1),(1,2,0),(2,3,1),(2,4,0),(3,3,3),(4,4,4)]
