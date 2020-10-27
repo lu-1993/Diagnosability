@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/helulu/PycharmProjects/TESTjm/test.py", line 4, in <module>
+    from z3 import *
+  File "/Users/helulu/PycharmProjects/TESTjm/venv/lib/python3.8/site-packages/z3/__init__.py", line 1, in <module>
+    from .z3 import *
+  File "/Users/helulu/PycharmProjects/TESTjm/venv/lib/python3.8/site-packages/z3/z3.py", line 47, in <module>
+    from .z3printer import *
+  File "/Users/helulu/PycharmProjects/TESTjm/venv/lib/python3.8/site-packages/z3/z3printer.py", line 42, in <module>
+    Z3_OP_SEQ_AT : 'At', Z3_OP_SEQ_NTH : 'Nth', Z3_OP_SEQ_INDEX : 'IndexOf',
+NameError: name 'Z3_OP_SEQ_NTH' is not defined
