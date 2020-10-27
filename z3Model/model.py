@@ -242,6 +242,7 @@ class Z3Model:
                 assert(nop or self.transitionList[previous][1] != self.transitionList[v][0])
             previous = v
 
+
     def printOneIntArray(self, model, array):
         """
         Print a list of z3 variables.
@@ -254,6 +255,7 @@ class Z3Model:
         for x in array:
             print('{:-6}'.format(int(model.evaluate(x).as_long())),end=" ")
         print()
+
 
     def printOneBoolArray(self, model, array):
         """
@@ -325,6 +327,7 @@ class Z3Model:
             print(self.transitionList[v],id,nop)
         print()
 
+
     def run(self):
         """
         Run the main program.
@@ -350,8 +353,6 @@ class Z3Model:
                 break
             else:
                 print("it is unsat")
-
-# the solver instance.
 
 # the automata.
 assert(len(sys.argv) == 2)
