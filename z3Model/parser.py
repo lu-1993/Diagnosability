@@ -33,16 +33,12 @@ class Parser:
             transition.append(finalState)
             transition.append(event)
 
-
             transitionList.append(transition)
 
 
         file.close()
 
         return initState,transitionList
-
-
-print(Parser("input.txt").parse())
 
 
         #return 0, [(0,1,2),(1,2,1),(1,2,0),(2,3,1),(2,4,0),(3,3,3),(4,4,4)]
