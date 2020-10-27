@@ -194,6 +194,9 @@ class Z3Model:
         print("possible init transition: ", self.possibleInitialTransition)
         print("limitFaulty:", self.limitFaulty)
         print("limitNoObser:", self.limitNoObser)
+        print("BOUND:", self.BOUND)
+        print("K:", self.K)
+
 
 
     def printZ3Constraints(self):
@@ -266,7 +269,7 @@ class Z3Model:
             id = 0
             if r:
                 id = 1
-            print('{:-6}'.format(id),end=" ")            
+            print('{:-6}'.format(id),end=" ")
         print()
 
 
@@ -326,15 +329,17 @@ class Z3Model:
         """
         Run the main program.
         """
-        while True:
+        assumK = Bool("k" + str(self.idxAssum))
+        self.s.add(Implies(assumK, self.k == 1))
+
+        cpt = 1
+        while cpt < self.BOUND:
             self.incBound()
 
             # assumption:
             self.idxAssum += 1
             assumB = Bool("b" + str(self.idxAssum))
             self.s.add(Implies(assumB, self.bound == len(self.faultyPath)))
-            assumK = Bool("k" + str(self.idxAssum))
-            self.s.add(Implies(assumK, self.k == 1))
 
             res = self.s.check(assumB, assumK)
             if res == sat:
