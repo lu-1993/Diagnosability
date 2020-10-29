@@ -25,11 +25,11 @@ class Parser:
             finalState = int(context[i].split(" ")[2].split("\n")[0]) - int(initState)
 
             if event == "f":
-                event = 0
-            elif "u" in event:
                 event = 1
+            elif "u" in event:
+                event = 2
             else:
-                event = int(event.strip('o')) + 1
+                event = int(event.strip('o')) + 2
 
             transition.append(sourceState)
             transition.append(finalState)
