@@ -1,0 +1,6 @@
+non-diagnosable
+Initial_state 0 Bound 50 K_value 2 observable={o1} unobservable={} fault={f}
+0 o1 0
+0 o1 1
+1 f 2
+2 o1 2
