@@ -9,7 +9,7 @@ class Parser:
     def parse(self, nameFile : str):
 
         file = open(nameFile, "r")
-        context = file.readlines()
+        context = file.readlines()        
 
         initState = int(context[0].split(" ")[1])
         bound = int(context[0].split(" ")[3])

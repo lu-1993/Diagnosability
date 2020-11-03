@@ -17,9 +17,9 @@ class Z3Model:
     initState = 0
     transitionList = []
     nextTransition = []
-    possibleInitialTransition = []
     idxAssum = 0
     maxLabelTransition = 0
+    maxLabelState = 0
 
     # z3 variables.
     labelTransition = []
@@ -68,13 +68,22 @@ class Z3Model:
             if self.transitionList[i][2] > self.maxLabelTransition:
                 self.maxLabelTransition = self.transitionList[i][2]
 
+            if self.transitionList[i][0] > self.maxLabelState:
+                self.maxLabelState = self.transitionList[i][0]
+
+            if self.transitionList[i][1] > self.maxLabelState:
+                self.maxLabelState = self.transitionList[i][1]
+
             # for a transition t, collect the list of possible next transition that can be executed after t.
             for j in range(len(self.transitionList)):
                 if (self.transitionList[i][1] == self.transitionList[j][0]):
                     self.nextTransition[i].append(j)
 
-        # get the transition that are valid with the initial init state.
-        self.possibleInitialTransition = [idx for idx in range(len(self.transitionList)) if self.transitionList[idx][0] == self.initState]
+        # we add a transition to start the two path identically.
+        self.maxLabelState += 1
+        self.transitionList.append([self.maxLabelState, self.initState, 2])
+        self.nextTransition.append([self.NOP_TRANSITION])
+        self.nextTransition[-1] += [idx for idx in range(len(self.transitionList)) if self.transitionList[idx][0] == self.initState]
 
         # we assign a status for each transition.
         self.labelTransition = [ Int("statusTransition_" + str(i+1)) for i in range(len(self.transitionList))]
@@ -86,8 +95,8 @@ class Z3Model:
         self.s.add(And([And(x >= 0, x <= self.maxLabelTransition) for x in self.labelTransition]))
 
         # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
-        self.s.add(Or([self.faultyPath[0] == v for v in self.possibleInitialTransition]))
-        self.s.add(Or([self.normalPath[0] == v for v in self.possibleInitialTransition]))
+        self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
+        self.s.add(self.normalPath[0] == len(self.transitionList) - 1)
         self.s.add(self.faultyPath[0] == self.lastlyActiveFaultyPath[0])
         self.s.add(self.normalPath[0] == self.lastlyActiveNormalPath[0])
 
@@ -193,7 +202,7 @@ class Z3Model:
         self.s.add(Implies(self.delta <= idx, self.faultOccursByThePast[idx]))
 
         # set the counter since when the fault occurs.
-        self.s.add(self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + self.faultOccursByThePast[idx])
+        self.s.add(self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + (And(self.faultyPath[idx] != self.NOP_TRANSITION, self.faultOccursByThePast[idx])))
 
 
     def printAutomatonInfo(self):
@@ -211,7 +220,6 @@ class Z3Model:
         for i in range(len(self.nextTransition)):
             print(i, ':', self.nextTransition[i])
 
-        print("possible init transition: ", self.possibleInitialTransition)
         print("BOUND:", self.BOUND)
         print("K:", self.K)
 
@@ -374,6 +382,7 @@ class Z3Model:
         Run the main program.
         """
         assumK = Bool("k" + str(self.idxAssum))
+
         self.s.add(Implies(assumK, self.k == self.K))
 
         # run in normal mode
@@ -381,16 +390,19 @@ class Z3Model:
             self.s.add(self.labelTransition[i] == self.transitionList[i][2])
 
         cpt = 1
-        while cpt < self.BOUND:
+        while cpt < (2 * self.BOUND):
             cpt += 1
             self.incBound()
 
             # assumption:
             self.idxAssum += 1
-            assumB = Bool("b" + str(self.idxAssum))
-            self.s.add(Implies(assumB, self.bound == len(self.faultyPath)))
+            assumB = Bool("b" + str(self.idxAssum))    # fix the bound
+            assumF = Bool("f" + str(self.idxAssum))    # ensure that we have enough real transition at the end
 
-            res = self.s.check(assumB, assumK)
+            self.s.add(Implies(assumB, self.bound == len(self.faultyPath)))
+            self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1] - 1 > self.k))
+
+            res = self.s.check(assumB, assumK, assumF)
             if res == sat:
                 m = self.s.model()
                 self.checkModel(m)
