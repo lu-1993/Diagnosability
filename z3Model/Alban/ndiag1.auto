@@ -1,0 +1,7 @@
+Initial_state 0   Bound 20   observable={a,b,c}   unobservable={u}  fault={f}
+0 a 1
+0 u 2
+1 f 3
+2 a 4
+3 c 3
+4 c 4
