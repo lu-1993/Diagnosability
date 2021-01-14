@@ -12,9 +12,6 @@ from z3Model import ModelZ3
 
 class ModelZ3kDiag (ModelZ3):
     # z3 variables.
-    s = Solver()
-
-    # z3 variables.
     labelTransition = []
     faultyPath = [ Int("fp_1") ]
     normalPath = [ Int("np_1") ]
@@ -105,6 +102,7 @@ class ModelZ3kDiag (ModelZ3):
 
         self.addConstraintOnIdTransition(0)
 
+
     def addConstraintOnIdTransition(self, pos):
         """
         Add the constraint that fix the id of the transition pos in both
@@ -138,8 +136,8 @@ class ModelZ3kDiag (ModelZ3):
         self.idTransitionFaultyPath.append(Int("idt_fp_" + str(idx)))
         self.idTransitionNormalPath.append(Int("idt_np_" + str(idx)))
         self.nopFaultyPath.append(Bool("nop_fp_" + str(idx)))
-        self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
         self.nopNormalPath.append(Bool("nop_np_" + str(idx)))
+        self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
         self.cptFaultOccursByThePast.append(Int("cptFaultOccurs_" + str(idx)))
         self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
 
@@ -198,31 +196,10 @@ class ModelZ3kDiag (ModelZ3):
         self.s.add(self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + (And(self.faultyPath[idx] != self.NOP_TRANSITION, self.faultOccursByThePast[idx])))
 
 
-    def printAutomatonInfo(self):
-        """
-        Print information about the given automaton
-        """
-        print("Information ...")
-        print("automata:")
-        for i in range(len(self.transitionList)):
-            print(i, ":", self.transitionList[i])
-
-        print("initial state:", self.initState)
-
-        print("next transition:")
-        for i in range(len(self.nextTransition)):
-            print(i, ':', self.nextTransition[i])
-
+    def displayInfo(self):
+        self.printAutomatonInfo()
         print("BOUND:", self.BOUND)
         print("K:", self.K)
-
-
-
-    def printZ3Constraints(self):
-        """
-        Print the constraint store in the solver following the z3 format.
-        """
-        print(self.s)
 
 
     def checkModel(self, model):
@@ -273,38 +250,6 @@ class ModelZ3kDiag (ModelZ3):
 
             if not nop:
                 previous = v
-
-
-    def printOneIntArray(self, model, array):
-        """
-        Print a list of z3 variables.
-
-        :param model: the model we want to check.
-        :type model: a z3 model.
-        :param array: the list of z3 variables we want to print out.
-        :type model: list of integer z3 variables.
-        """
-        for x in array:
-            print('{:-6}'.format(int(model.evaluate(x).as_long())),end=" ")
-        print()
-
-
-    def printOneBoolArray(self, model, array):
-        """
-        Print a list of z3 variables.
-
-        :param model: the model we want to check.
-        :type model: a z3 model.
-        :param array: the list of z3 variables we want to print out.
-        :type model: list of boolean z3 variables.
-        """
-        for x in array:
-            r = model.evaluate(x)
-            id = 0
-            if r:
-                id = 1
-            print('{:-6}'.format(id),end=" ")
-        print()
 
 
     def printModel(self, model):

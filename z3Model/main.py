@@ -7,5 +7,5 @@ from kDiagModel import ModelZ3kDiag
 # the automata.
 assert(len(sys.argv) == 2)
 z3Model = ModelZ3kDiag(sys.argv[1])
-z3Model.printAutomatonInfo()
+z3Model.displayInfo()
 z3Model.run()
