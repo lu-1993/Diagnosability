@@ -18,7 +18,6 @@ class Parser:
         for i in range(1, len(context)):
             transition = []
 
-
             sourceState = int(context[i].split(" ")[0]) - int(initState)
             event = context[i].split(" ")[1]
             finalState = int(context[i].split(" ")[2].split("\n")[0]) - int(initState)

@@ -11,9 +11,8 @@ from z3Model import ModelZ3
 # A non observable transition is labelled with 2
 
 class ModelZ3kDiag (ModelZ3):
-    # z3 solver.
+    # z3 variables.
     s = Solver()
-    
 
     # z3 variables.
     labelTransition = []
