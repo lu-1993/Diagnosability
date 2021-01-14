@@ -13,14 +13,7 @@ from z3Model import ModelZ3
 class ModelZ3kDiag (ModelZ3):
     # z3 solver.
     s = Solver()
-
-    # automaton description.
-    initState = 0
-    transitionList = []
-    nextTransition = []
-    idxAssum = 0
-    maxLabelTransition = 0
-    maxLabelState = 0
+    
 
     # z3 variables.
     labelTransition = []
