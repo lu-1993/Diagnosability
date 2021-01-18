@@ -4,6 +4,7 @@
 import sys
 import argparse
 from kDiagToZ3gModel import KDiagToZ3Model
+from kDiagRecarZ3Model import KDiagRecarZ3Model
 
 # Instantiate the options parser
 parser = argparse.ArgumentParser(description='Diagnosis tool')
@@ -14,10 +15,19 @@ parser.add_argument('--symmetry', default=False, action='store_true', help='Is t
 parser.add_argument('--recar', default=False, action='store_true', help='Is the RECAR mode activated?')
 args = parser.parse_args()
 
-if args.method == 'kDiag':
-    print("[MAIN]", "K diagnosis process")
-    z3Model = KDiagToZ3Model(args.file)
-    z3Model.displayInfo()
-    z3Model.run()
+if not args.recar:
+    if args.method == 'kDiag':
+        print("[MAIN]", "K diagnosis process")
+        z3Model = KDiagToZ3Model(args.file)
+        z3Model.displayInfo()
+        z3Model.run()
+    else:
+        print("[MAIN]", "Loop diagnosis process")
 else:
-    print("[MAIN]", "Loop diagnosis process")
+    if args.method == 'kDiag':
+        print("[MAIN - RECAR]", "K diagnosis process")
+        z3Model = KDiagRecarZ3Model(args.file)
+        z3Model.displayInfo()
+        z3Model.run()
+    else:
+        print("[MAIN - RECAR]", "Loop diagnosis process ... in progress")

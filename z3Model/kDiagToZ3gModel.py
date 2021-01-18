@@ -11,7 +11,6 @@ from z3Model import Z3Model
 
 class KDiagToZ3Model (Z3Model):
     # z3 variables.
-    labelTransition = []
     faultyPath = [ Int("fp_1") ]
     normalPath = [ Int("np_1") ]
     lastlyActiveFaultyPath = [ Int("lfp_1") ]
@@ -22,7 +21,7 @@ class KDiagToZ3Model (Z3Model):
     nopNormalPath = [ Bool("nop_np_1") ]
     faultOccursByThePast = [ Bool("faultOccurs_1") ]
     checkSynchro = [ Bool("check_synchro_1") ]
-    cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]        
+    cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]
     delta = Int("delta")
 
     # parameter
@@ -43,16 +42,6 @@ class KDiagToZ3Model (Z3Model):
         :type nameFile: str
         """
         super().__init__(nameFile)
-
-
-        # we assign a status for each transition.
-        self.labelTransition = [ Int("statusTransition_" + str(i+1)) for i in range(len(self.transitionList))]
-
-        # the first transition is labelled with 0: it is the NOP transition
-        self.s.add(self.labelTransition[0] == 0)
-
-        # The status for a transition can be 0 for a NOP, 1 for fault, 2 for an non observable and at least 3 for an observable event.
-        self.s.add(And([And(x >= 0, x <= self.maxLabelTransition) for x in self.labelTransition]))
 
         # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
         self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
@@ -82,8 +71,8 @@ class KDiagToZ3Model (Z3Model):
         """
         # collect the label for the transition
         for j in range(len(self.transitionList)):
-            self.s.add(Implies(self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.labelTransition[j]))
-            self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.labelTransition[j]))
+            self.s.add(Implies(self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.transitionList[j][2]))
+            self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.transitionList[j][2]))
 
         # it is useless to go more than k after the first occurrence of the fault (=> we do not care if the critical pair is divergente).
         # two paths have to agree on the observables.
@@ -168,7 +157,7 @@ class KDiagToZ3Model (Z3Model):
     def displayInfo(self):
         self.printAutomatonInfo()
         print("BOUND:", self.BOUND)
-        print("K:", K)
+        print("K:", self.K)
 
 
     def checkModel(self, model):
@@ -252,8 +241,6 @@ class KDiagToZ3Model (Z3Model):
         self.printOneBoolArray(model, self.faultOccursByThePast)
         print("checkSynchro")
         self.printOneBoolArray(model, self.checkSynchro)
-        print("labelTransition")
-        self.printOneIntArray(model, self.labelTransition)
         print()
 
         print("Delta:")
@@ -268,7 +255,7 @@ class KDiagToZ3Model (Z3Model):
             id = int(model.evaluate(self.idTransitionFaultyPath[i]).as_long())
             nop = model.evaluate(self.nopFaultyPath[i])
             inFault = model.evaluate(self.faultOccursByThePast[i])
-            print(self.transitionList[v],id,nop,inFault)
+            print(self.transitionList[v], id, nop, inFault)
         print()
 
         print("Normal path:")
@@ -276,7 +263,7 @@ class KDiagToZ3Model (Z3Model):
             v = int(model.evaluate(self.normalPath[i]).as_long())
             id = int(model.evaluate(self.idTransitionNormalPath[i]).as_long())
             nop = model.evaluate(self.nopNormalPath[i])
-            print(self.transitionList[v],id,nop)
+            print(self.transitionList[v], id, nop)
         print()
 
 
@@ -284,22 +271,14 @@ class KDiagToZ3Model (Z3Model):
         """
         Run the main program.
         """
-        # run in normal mode
-        for i in range(len(self.transitionList)):
-            self.s.add(self.labelTransition[i] == self.transitionList[i][2])
-
         cpt = 1
         while cpt < (2 * self.BOUND):
             cpt += 1
             self.incBound()
 
-        # assumption:
-        self.idxAssum += 1
-        assumF = Bool("f" + str(self.idxAssum))    # ensure that we have enough real transition at the end
+        self.s.add(self.cptFaultOccursByThePast[-1] - 1 > self.K)
 
-        self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1] - 1 > self.K))
-
-        res = self.s.check(assumF)
+        res = self.s.check()
         if res == sat:
             m = self.s.model()
             self.checkModel(m)
