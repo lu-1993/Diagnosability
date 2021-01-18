@@ -22,9 +22,7 @@ class KDiagToZ3Model (Z3Model):
     nopNormalPath = [ Bool("nop_np_1") ]
     faultOccursByThePast = [ Bool("faultOccurs_1") ]
     checkSynchro = [ Bool("check_synchro_1") ]
-    cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]
-    bound = Int("bound")
-    k = Int("k")
+    cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]        
     delta = Int("delta")
 
     # parameter
@@ -65,11 +63,10 @@ class KDiagToZ3Model (Z3Model):
         self.s.add(self.idTransitionNormalPath[0] != self.FAULT)
         self.s.add(self.nopFaultyPath[0] == False)
         self.s.add(self.nopNormalPath[0] == False)
-        self.s.add(self.delta == self.bound - self.k - 1)
+        self.s.add(self.delta == self.BOUND - self.K - 1)
         self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == self.FAULT))
         self.s.add(Implies(self.delta <= 0, self.faultOccursByThePast[0]))
-        self.s.add(self.bound >= 0)
-        self.s.add(self.k >= 0)
+        self.s.add(self.K >= 0)
         self.s.add(self.cptFaultOccursByThePast[0] == self.faultOccursByThePast[0])
 
         self.addConstraintOnIdTransition(0)
@@ -93,7 +90,7 @@ class KDiagToZ3Model (Z3Model):
         self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS, self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
 
         # count since when the first fault occurs
-        self.s.add(Or(self.cptFaultOccursByThePast[pos] - 1 > self.k, Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
+        self.s.add(Or(self.cptFaultOccursByThePast[pos] - 1 > self.K, Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
 
 
     def incVariableList(self):
@@ -171,7 +168,7 @@ class KDiagToZ3Model (Z3Model):
     def displayInfo(self):
         self.printAutomatonInfo()
         print("BOUND:", self.BOUND)
-        print("K:", self.K)
+        print("K:", K)
 
 
     def checkModel(self, model):
@@ -184,9 +181,7 @@ class KDiagToZ3Model (Z3Model):
         :type model: a z3 model.
         """
         delta = int(model.evaluate(self.delta).as_long())
-        bound = int(model.evaluate(self.bound).as_long())
-        k = int(model.evaluate(self.k).as_long())
-        assert(delta == (bound - k - 1))
+        assert(delta == (self.BOUND - self.K - 1))
 
         previous = None
         for i in range(len(self.faultyPath)):
@@ -263,9 +258,7 @@ class KDiagToZ3Model (Z3Model):
 
         print("Delta:")
         delta = int(model.evaluate(self.delta).as_long())
-        bound = int(model.evaluate(self.bound).as_long())
-        k = int(model.evaluate(self.k).as_long())
-        print(delta, "=", bound, "-", k, "-", 1)
+        print(delta, "=", self.BOUND, "-", self.K, "-", 1)
         print()
 
         # print the paths
@@ -291,10 +284,6 @@ class KDiagToZ3Model (Z3Model):
         """
         Run the main program.
         """
-        assumK = Bool("k" + str(self.idxAssum))
-
-        self.s.add(Implies(assumK, self.k == self.K))
-
         # run in normal mode
         for i in range(len(self.transitionList)):
             self.s.add(self.labelTransition[i] == self.transitionList[i][2])
@@ -304,21 +293,17 @@ class KDiagToZ3Model (Z3Model):
             cpt += 1
             self.incBound()
 
-            # assumption:
-            self.idxAssum += 1
-            assumB = Bool("b" + str(self.idxAssum))    # fix the bound
-            assumF = Bool("f" + str(self.idxAssum))    # ensure that we have enough real transition at the end
+        # assumption:
+        self.idxAssum += 1
+        assumF = Bool("f" + str(self.idxAssum))    # ensure that we have enough real transition at the end
 
-            self.s.add(Implies(assumB, self.bound == len(self.faultyPath)))
-            self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1] - 1 > self.k))
+        self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1] - 1 > self.K))
 
-            res = self.s.check(assumB, assumK, assumF)
-            if res == sat:
-                m = self.s.model()
-                self.checkModel(m)
-                self.printModel(m)
-                return
-            else:
-                print("Increase the bound:", len(self.faultyPath) + 1)
-
-        print("The problem is UNSAT")
+        res = self.s.check(assumF)
+        if res == sat:
+            m = self.s.model()
+            self.checkModel(m)
+            self.printModel(m)
+            return
+        else:
+            print("The problem is UNSAT")
