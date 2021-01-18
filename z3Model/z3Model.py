@@ -7,10 +7,7 @@ from model import Model
 class Z3Model (Model):
     # z3 solver.
     s = Solver()
-
-    def __init__(self):
-        pass
-
+    
     def printOneIntArray(self, model, array):
         """
         Print a list of z3 variables.

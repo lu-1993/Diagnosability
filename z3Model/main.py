@@ -15,9 +15,9 @@ parser.add_argument('--recar', default=False, action='store_true', help='Is the 
 args = parser.parse_args()
 
 if args.method == 'kDiag':
-    print("[RUN]", "K diagnosis process")
+    print("[MAIN]", "K diagnosis process")
     z3Model = KDiagToZ3Model(args.file)
     z3Model.displayInfo()
     z3Model.run()
 else:
-    print("[RUN]", "Loop diagnosis process")
+    print("[MAIN]", "Loop diagnosis process")
