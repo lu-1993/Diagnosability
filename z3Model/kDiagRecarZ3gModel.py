@@ -3,14 +3,14 @@
 from abc import ABC, abstractmethod
 from z3 import *
 from parser import Parser
-from z3Model import ModelZ3
+from z3Model import Z3Model
 
 # Here are some suppositions:
 # The NOP operation is represented by the ID 0
 # The faulty transition is labelled with 1
 # A non observable transition is labelled with 2
 
-class ModelZ3kDiag (ModelZ3):
+class KDiagRecarZ3Model (Z3Model):
     # z3 variables.
     labelTransition = []
     faultyPath = [ Int("fp_1") ]

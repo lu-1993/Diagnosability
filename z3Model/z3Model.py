@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from z3 import *
 from model import Model
 
-class ModelZ3 (Model):
+class Z3Model (Model):
     # z3 solver.
     s = Solver()
 
