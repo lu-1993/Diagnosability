@@ -37,6 +37,12 @@ class Z3Model (Model):
         self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
 
 
+    def incBound(self):
+        """
+        Extend the bound allowing a new transition.
+        """
+        pass
+
     def printOneIntArray(self, model, array):
         """
         Print a list of z3 variables.

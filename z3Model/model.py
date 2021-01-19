@@ -96,3 +96,7 @@ class Model(ABC):
     @abstractmethod
     def incVariableList(self):
         pass
+
+    @abstractmethod
+    def incBound(self):
+        pass
