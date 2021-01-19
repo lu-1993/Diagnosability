@@ -11,8 +11,16 @@ from z3Model import Z3Model
 
 class LDiagNoSymToZ3Model (Z3Model):
     # z3 variables.
-    cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]
-    delta = Int("delta")
+    startLoop = Int("startLoop")
+    endLoop = Int("endLoop")
+
+    projStartStateNormal = Int("projStartStateNormal")
+    projEndStateNormal = Int("projEndStateNormal")
+    projStartStateFaulty = Int("projStartStateFaulty")
+    projEndStateFaulty = Int("projEndStateFaulty")
+
+    stateFaultyPath = [ Int("stateF_1") ]
+    stateNormalPath = [ Int("stateN_1") ]
 
     # parameter
     BOUND = 0
@@ -34,6 +42,20 @@ class LDiagNoSymToZ3Model (Z3Model):
         super().__init__(nameFile, False)
         self.addConstraintOnIdTransition(0)
 
+        self.s.add(self.startLoop < self.BOUND - 1)
+        self.s.add(self.startLoop >= 0)
+
+        self.s.add(self.endLoop <= self.startLoop)
+        self.s.add(self.endLoop >= 0)
+        self.s.add(self.projStartStateNormal == self.projEndStateNormal)
+        self.s.add(self.projStartStateFaulty == self.projEndStateFaulty)
+
+        self.s.add(self.projStartStateNormal != -1)
+        self.s.add(self.projStartStateFaulty != -1)
+        self.s.add(self.projEndStateNormal != -1)
+        self.s.add(self.projEndStateFaulty != -1)
+
+        self.addConstraintOnIdTransition(0)
 
 
     def addConstraintOnIdTransition(self, pos):
@@ -46,12 +68,31 @@ class LDiagNoSymToZ3Model (Z3Model):
         """
         super().addConstraintOnIdTransition(pos)
 
+        self.s.add(Implies(self.startLoop == pos, self.faultOccursByThePast[pos]))
+
+        for j in range(len(self.transitionList)):
+            self.s.add(Implies(self.faultyPath[pos] == j, self.stateFaultyPath[pos] == self.transitionList[j][0]))
+            self.s.add(Implies(self.normalPath[pos] == j, self.stateNormalPath[pos] == self.transitionList[j][0]))
+
+        if pos > 0:
+            self.s.add(Implies(self.startLoop == pos - 1, self.projStartStateNormal == self.stateNormalPath[pos]))
+            self.s.add(Implies(self.startLoop == pos - 1, self.projStartStateFaulty == self.stateFaultyPath[pos]))
+
+        self.s.add(Implies(self.endLoop == pos, self.projEndStateNormal == self.stateNormalPath[pos]))
+        self.s.add(Implies(self.endLoop == pos, self.projEndStateFaulty == self.stateFaultyPath[pos]))
+
+        self.s.add(Or(self.endLoop < pos, Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
+
 
     def incVariableList(self):
         """
         Increment all the list with one new z3 variable.
         """
         super().incVariableList()
+
+        idx = len(self.faultyPath) + 1
+        self.stateFaultyPath.append(Int("stateF_" + str(idx)))
+        self.stateNormalPath.append(Int("stateN_" + str(idx)))
 
 
     def incBound(self):
@@ -60,12 +101,10 @@ class LDiagNoSymToZ3Model (Z3Model):
         """
         # increment the bound for the local variables.
         self.incVariableList()
-
-        # increment the bound for the parent.
         super().incBound()
 
         # get the last variable.
-        idx = len(self.faultyPath) - 1
+        idx = len(self.stateNormalPath) - 1
         assert(idx > 0)
 
         # we add the constraints that specify the id of the transition
@@ -98,6 +137,19 @@ class LDiagNoSymToZ3Model (Z3Model):
         :param model: the model we want to check.
         :type model: a z3 model.
         """
+        print("[L DIAG] startLoop =", model.evaluate(self.startLoop))
+        print("[L DIAG] endLoop =", model.evaluate(self.endLoop))
+        print("[L DIAG] projStartStateFaulty =", model.evaluate(self.projStartStateFaulty))
+        print("[L DIAG] projEndStateFaulty =", model.evaluate(self.projEndStateFaulty))
+        print("[L DIAG] projStartStateNormal =", model.evaluate(self.projStartStateNormal))
+        print("[L DIAG] projEndStateNormal =", model.evaluate(self.projEndStateNormal))
+
+        print("[L DIAG] stateFaultyPath: ")
+        self.printOneIntArray(model, self.stateFaultyPath)
+        print("[L DIAG] stateNormalPath: ")
+        self.printOneIntArray(model, self.stateNormalPath)
+
+        print()
         super().printModel(model)
 
 

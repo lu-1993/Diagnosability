@@ -10,7 +10,6 @@ class Z3Model (Model):
 
     faultyPath = [ Int("fp_1") ]
     normalPath = [ Int("np_1") ]
-
     lastlyActiveFaultyPath = [ Int("lfp_1") ]
     lastlyActiveNormalPath = [ Int("lnp_1") ]
     idTransitionFaultyPath = [ Int("idt_fp_1") ]
@@ -44,7 +43,7 @@ class Z3Model (Model):
         self.s.add(self.nopNormalPath[0] == False)
         self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == self.FAULT))
 
-        
+
 
     def addConstraintOnIdTransition(self, pos):
         """
@@ -58,10 +57,10 @@ class Z3Model (Model):
         for j in range(len(self.transitionList)):
             self.s.add(Implies(self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.transitionList[j][2]))
             self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.transitionList[j][2]))
-
-        # it is useless to go more than k after the first occurrence of the fault (=> we do not care if the critical pair is divergente).
-        # two paths have to agree on the observables.
+        
+        # check out if we have to synchornize on the observable.
         self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS, self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
+
 
 
     def incVariableList(self):
