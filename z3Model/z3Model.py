@@ -20,6 +20,13 @@ class Z3Model (Model):
     faultOccursByThePast = [ Bool("faultOccurs_1") ]
     checkSynchro = [ Bool("check_synchro_1") ]
 
+    # variable
+    length = 1
+
+
+    def incVariableList(self):
+
+
 
     def printOneIntArray(self, model, array):
         """

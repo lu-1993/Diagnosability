@@ -78,7 +78,7 @@ class KDiagToZ3Model (Z3Model):
         """
         Increment all the list with one new z3 variable.
         """
-        idx = len(self.faultyPath) + 1
+        idx = self.length + 1
         self.faultyPath.append(Int("fp_" + str(idx)))
         self.normalPath.append(Int("np_" + str(idx)))
         self.lastlyActiveFaultyPath.append(Int("lfp_" + str(idx)))
@@ -90,6 +90,8 @@ class KDiagToZ3Model (Z3Model):
         self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
         self.cptFaultOccursByThePast.append(Int("cptFaultOccurs_" + str(idx)))
         self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
+
+        self.length += 1
 
 
     def incBound(self):
