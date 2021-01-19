@@ -20,12 +20,14 @@ class Z3Model (Model):
     faultOccursByThePast = [ Bool("faultOccurs_1") ]
     checkSynchro = [ Bool("check_synchro_1") ]
 
-    # variable
-    length = 1
-
+    # classic variable.
+    symActicated = False
 
     def incVariableList(self):
-        idx = self.length + 1
+        """
+        Increment all the list with one new z3 variable.
+        """
+        idx = len(self.faultyPath) + 1
         self.faultyPath.append(Int("fp_" + str(idx)))
         self.normalPath.append(Int("np_" + str(idx)))
         self.lastlyActiveFaultyPath.append(Int("lfp_" + str(idx)))
@@ -41,7 +43,45 @@ class Z3Model (Model):
         """
         Extend the bound allowing a new transition.
         """
-        pass
+        idx = len(self.faultyPath) - 1
+
+        # we reduce the domain to what it is necessary
+        self.s.add(self.faultyPath[idx] <= len(self.transitionList))
+        self.s.add(self.normalPath[idx] <= len(self.transitionList))
+
+        self.s.add(self.idTransitionFaultyPath[idx] <= self.maxLabelTransition)
+        self.s.add(self.idTransitionNormalPath[idx] <= self.maxLabelTransition)
+
+        # set the lastly active transition.
+        self.s.add(Implies(self.faultyPath[idx] == self.NOP_TRANSITION, self.lastlyActiveFaultyPath[idx] == self.lastlyActiveFaultyPath[idx-1]))
+        self.s.add(Implies(self.faultyPath[idx] != self.NOP_TRANSITION, self.lastlyActiveFaultyPath[idx] == self.faultyPath[idx]))
+        self.s.add(Implies(self.normalPath[idx] == self.NOP_TRANSITION, self.lastlyActiveNormalPath[idx] == self.lastlyActiveNormalPath[idx-1]))
+        self.s.add(Implies(self.normalPath[idx] != self.NOP_TRANSITION, self.lastlyActiveNormalPath[idx] == self.normalPath[idx]))
+
+        # verifying that transitions are correct regarding the label.
+        for j in range(len(self.transitionList)):
+            self.s.add(Implies(self.lastlyActiveFaultyPath[idx-1] == j, Or([self.faultyPath[idx] == n for n in self.nextTransition[j]])))
+            self.s.add(Implies(self.lastlyActiveNormalPath[idx-1] == j, Or([self.normalPath[idx] == n for n in self.nextTransition[j]])))
+
+        # no fault in the normal path.
+        self.s.add(self.idTransitionNormalPath[idx] != self.FAULT)
+
+        # we want to progress
+        self.s.add(Or(Not(self.nopFaultyPath[idx]), Not(self.nopNormalPath[idx])))
+
+        # specify if the transition is a nop
+        self.s.add(self.nopFaultyPath[idx] == (self.faultyPath[idx] == self.NOP_TRANSITION))
+        self.s.add(self.nopNormalPath[idx] == (self.normalPath[idx] == self.NOP_TRANSITION))
+
+        # the dynamic of the fault list of variables
+        self.s.add(Or(self.faultOccursByThePast[idx-1], self.idTransitionFaultyPath[idx] == self.FAULT) == self.faultOccursByThePast[idx])
+
+        # breaking symmetries in the nop schema
+        if self.symActicated:
+            self.s.add(Implies(self.nopFaultyPath[idx-1], Or(self.nopFaultyPath[idx], self.idTransitionFaultyPath[idx] > self.NO_OBS)))
+            self.s.add(Implies(self.nopNormalPath[idx-1], Or(self.nopNormalPath[idx], self.idTransitionNormalPath[idx] > self.NO_OBS)))
+
+
 
     def printOneIntArray(self, model, array):
         """
