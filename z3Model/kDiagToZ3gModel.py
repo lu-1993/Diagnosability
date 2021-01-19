@@ -11,14 +11,6 @@ from z3Model import Z3Model
 
 class KDiagToZ3Model (Z3Model):
     # z3 variables.
-    lastlyActiveFaultyPath = [ Int("lfp_1") ]
-    lastlyActiveNormalPath = [ Int("lnp_1") ]
-    idTransitionFaultyPath = [ Int("idt_fp_1") ]
-    idTransitionNormalPath = [ Int("idt_np_1") ]
-    nopFaultyPath = [ Bool("nop_fp_1") ]
-    nopNormalPath = [ Bool("nop_np_1") ]
-    faultOccursByThePast = [ Bool("faultOccurs_1") ]
-    checkSynchro = [ Bool("check_synchro_1") ]
     cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]
     delta = Int("delta")
 
@@ -218,55 +210,14 @@ class KDiagToZ3Model (Z3Model):
         :param model: the model we want to check.
         :type model: a z3 model.
         """
-        print("--------------------")
-        print("z3 arrays (size = " + str(len(self.faultyPath)) + ")")
-        print("--------------------")
-        print("faultyPath: ")
-        self.printOneIntArray(model, self.faultyPath)
-        print("normalPath: ")
-        self.printOneIntArray(model, self.normalPath)
-        print("lastlyActiveFaultyPath")
-        self.printOneIntArray(model, self.lastlyActiveFaultyPath)
-        print("lastlyActiveNormalPath")
-        self.printOneIntArray(model, self.lastlyActiveNormalPath)
-        print("idTransitionFaultyPath: ")
-        self.printOneIntArray(model, self.idTransitionFaultyPath)
-        print("idTransitionNormalPath: ")
-        self.printOneIntArray(model, self.idTransitionNormalPath)
-        print("cptFaultOccursByThePast: ")
+        print("[K DIAG CEGAR] cptFaultOccursByThePast: ")
         self.printOneIntArray(model, self.cptFaultOccursByThePast)
-        print("nopFaultyPath:")
-        self.printOneBoolArray(model, self.nopFaultyPath)
-        print("nopNormalPath: ")
-        self.printOneBoolArray(model, self.nopNormalPath)
-        print("faultOccursByThePast: ")
-        self.printOneBoolArray(model, self.faultOccursByThePast)
-        print("checkSynchro")
-        self.printOneBoolArray(model, self.checkSynchro)
-        print()
 
-        print("Delta:")
+        print("[K DIAG CEGAR] Delta:")
         delta = int(model.evaluate(self.delta).as_long())
         print(delta, "=", self.BOUND, "-", self.K, "-", 1)
-        print()
 
-        # print the paths
-        print("Faulty path:")
-        for i in range(len(self.faultyPath)):
-            v = int(model.evaluate(self.faultyPath[i]).as_long())
-            id = int(model.evaluate(self.idTransitionFaultyPath[i]).as_long())
-            nop = model.evaluate(self.nopFaultyPath[i])
-            inFault = model.evaluate(self.faultOccursByThePast[i])
-            print(self.transitionList[v], id, nop, inFault)
-        print()
-
-        print("Normal path:")
-        for i in range(len(self.normalPath)):
-            v = int(model.evaluate(self.normalPath[i]).as_long())
-            id = int(model.evaluate(self.idTransitionNormalPath[i]).as_long())
-            nop = model.evaluate(self.nopNormalPath[i])
-            print(self.transitionList[v], id, nop)
-        print()
+        super().printModel(model)
 
 
     def run(self):

@@ -88,3 +88,11 @@ class Model(ABC):
     @abstractmethod
     def checkModel(self, model):
         pass
+
+    @abstractmethod
+    def printModel(self, model):
+        pass
+
+    @abstractmethod
+    def incVariableList(self):
+        pass
