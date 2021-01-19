@@ -11,8 +11,6 @@ from z3Model import Z3Model
 
 class KDiagToZ3Model (Z3Model):
     # z3 variables.
-    faultyPath = [ Int("fp_1") ]
-    normalPath = [ Int("np_1") ]
     lastlyActiveFaultyPath = [ Int("lfp_1") ]
     lastlyActiveNormalPath = [ Int("lnp_1") ]
     idTransitionFaultyPath = [ Int("idt_fp_1") ]
@@ -27,6 +25,7 @@ class KDiagToZ3Model (Z3Model):
     # parameter
     BOUND = 0
     K = 0
+    symActicated = False
 
     # 'constants'
     NOP = 0
@@ -34,7 +33,7 @@ class KDiagToZ3Model (Z3Model):
     NO_OBS = 2
     NOP_TRANSITION = 0
 
-    def __init__(self, nameFile):
+    def __init__(self, nameFile, symActicated):
         """
         Constructor.
 
@@ -42,6 +41,7 @@ class KDiagToZ3Model (Z3Model):
         :type nameFile: str
         """
         super().__init__(nameFile)
+        self.symActicated = symActicated
 
         # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
         self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
@@ -141,8 +141,9 @@ class KDiagToZ3Model (Z3Model):
         self.s.add(Or(Not(self.nopFaultyPath[idx]), Not(self.nopNormalPath[idx])))
 
         # breaking symmetries in the nop schema
-        self.s.add(Implies(self.nopFaultyPath[idx-1], Or(self.nopFaultyPath[idx], self.idTransitionFaultyPath[idx] > self.NO_OBS)))
-        self.s.add(Implies(self.nopNormalPath[idx-1], Or(self.nopNormalPath[idx], self.idTransitionNormalPath[idx] > self.NO_OBS)))
+        if self.symActicated:
+            self.s.add(Implies(self.nopFaultyPath[idx-1], Or(self.nopFaultyPath[idx], self.idTransitionFaultyPath[idx] > self.NO_OBS)))
+            self.s.add(Implies(self.nopNormalPath[idx-1], Or(self.nopNormalPath[idx], self.idTransitionNormalPath[idx] > self.NO_OBS)))
 
         # the dynamic of the fault list of variables
         self.s.add(Or(self.faultOccursByThePast[idx-1], self.idTransitionFaultyPath[idx] == self.FAULT) == self.faultOccursByThePast[idx])
@@ -156,8 +157,9 @@ class KDiagToZ3Model (Z3Model):
 
     def displayInfo(self):
         self.printAutomatonInfo()
-        print("BOUND:", self.BOUND)
-        print("K:", self.K)
+        print("[K DIAG CEGAR] BOUND:", self.BOUND)
+        print("[K DIAG CEGAR] K:", self.K)
+        print("[K DIAG CEGAR] Symmetry activated:", self.symActicated)
 
 
     def checkModel(self, model):
@@ -272,7 +274,7 @@ class KDiagToZ3Model (Z3Model):
         Run the main program.
         """
         cpt = 1
-        while cpt < (2 * self.BOUND):
+        while cpt < (self.BOUND):
             cpt += 1
             self.incBound()
 

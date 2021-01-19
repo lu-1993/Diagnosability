@@ -18,7 +18,7 @@ args = parser.parse_args()
 if not args.recar:
     if args.method == 'kDiag':
         print("[MAIN]", "K diagnosis process")
-        z3Model = KDiagToZ3Model(args.file)
+        z3Model = KDiagToZ3Model(args.file, args.symmetry)
         z3Model.displayInfo()
         z3Model.run()
     else:

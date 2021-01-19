@@ -7,7 +7,11 @@ from model import Model
 class Z3Model (Model):
     # z3 solver.
     s = Solver()
+
+    faultyPath = [ Int("fp_1") ]
+    normalPath = [ Int("np_1") ]
     
+
     def printOneIntArray(self, model, array):
         """
         Print a list of z3 variables.
