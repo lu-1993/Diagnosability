@@ -78,16 +78,10 @@ class KDiagToZ3Model (Z3Model):
         """
         Increment all the list with one new z3 variable.
         """
+        super().incVariableList()
+
+        # we increment the bound for the remaining variables.
         idx = self.length + 1
-        self.faultyPath.append(Int("fp_" + str(idx)))
-        self.normalPath.append(Int("np_" + str(idx)))
-        self.lastlyActiveFaultyPath.append(Int("lfp_" + str(idx)))
-        self.lastlyActiveNormalPath.append(Int("lnp_" + str(idx)))
-        self.idTransitionFaultyPath.append(Int("idt_fp_" + str(idx)))
-        self.idTransitionNormalPath.append(Int("idt_np_" + str(idx)))
-        self.nopFaultyPath.append(Bool("nop_fp_" + str(idx)))
-        self.nopNormalPath.append(Bool("nop_np_" + str(idx)))
-        self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
         self.cptFaultOccursByThePast.append(Int("cptFaultOccurs_" + str(idx)))
         self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
 

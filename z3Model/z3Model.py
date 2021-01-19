@@ -25,7 +25,16 @@ class Z3Model (Model):
 
 
     def incVariableList(self):
-
+        idx = self.length + 1
+        self.faultyPath.append(Int("fp_" + str(idx)))
+        self.normalPath.append(Int("np_" + str(idx)))
+        self.lastlyActiveFaultyPath.append(Int("lfp_" + str(idx)))
+        self.lastlyActiveNormalPath.append(Int("lnp_" + str(idx)))
+        self.idTransitionFaultyPath.append(Int("idt_fp_" + str(idx)))
+        self.idTransitionNormalPath.append(Int("idt_np_" + str(idx)))
+        self.nopFaultyPath.append(Bool("nop_fp_" + str(idx)))
+        self.nopNormalPath.append(Bool("nop_np_" + str(idx)))
+        self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
 
 
     def printOneIntArray(self, model, array):
