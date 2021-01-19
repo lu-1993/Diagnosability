@@ -3,7 +3,7 @@
 
 import sys
 import argparse
-from kDiagToZ3gModel import KDiagToZ3Model
+from kDiagToZ3Model import KDiagToZ3Model
 from kDiagRecarZ3Model import KDiagRecarZ3Model
 
 # Instantiate the options parser
