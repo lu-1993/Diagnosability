@@ -30,21 +30,13 @@ class KDiagToZ3Model (Z3Model):
 
         :param nameFile: where is stored the automaton
         :type nameFile: str
+        :param symActicated: is the symmetry mode activated
+        :type symActicated: bool
         """
-        super().__init__(nameFile)
-        self.symActicated = symActicated
+        super().__init__(nameFile, symActicated)
 
-        # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
-        self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
-        self.s.add(self.normalPath[0] == len(self.transitionList) - 1)
-        self.s.add(self.faultyPath[0] == self.lastlyActiveFaultyPath[0])
-        self.s.add(self.normalPath[0] == self.lastlyActiveNormalPath[0])
-
-        self.s.add(self.idTransitionNormalPath[0] != self.FAULT)
-        self.s.add(self.nopFaultyPath[0] == False)
-        self.s.add(self.nopNormalPath[0] == False)
+        # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.                
         self.s.add(self.delta == self.BOUND - self.K - 1)
-        self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == self.FAULT))
         self.s.add(Implies(self.delta <= 0, self.faultOccursByThePast[0]))
         self.s.add(self.K >= 0)
         self.s.add(self.cptFaultOccursByThePast[0] == self.faultOccursByThePast[0])
@@ -75,7 +67,6 @@ class KDiagToZ3Model (Z3Model):
         # we increment the bound for the remaining variables.
         idx = len(self.cptFaultOccursByThePast) + 1
         self.cptFaultOccursByThePast.append(Int("cptFaultOccurs_" + str(idx)))
-        self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
 
 
     def incBound(self):

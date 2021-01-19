@@ -23,6 +23,29 @@ class Z3Model (Model):
     # classic variable.
     symActicated = False
 
+    def __init__(self, nameFile, symActicated):
+        """
+        Constructor.
+
+        :param nameFile: the file where is stored the automaton with the parameters (i.e. k and B).
+        :type nameFile str
+        :param symActicated: is the symmetry mode activated
+        :type symActicated: bool
+        """
+        super().__init__(nameFile)
+        self.symActicated = symActicated
+
+        self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
+        self.s.add(self.normalPath[0] == len(self.transitionList) - 1)
+        self.s.add(self.faultyPath[0] == self.lastlyActiveFaultyPath[0])
+        self.s.add(self.normalPath[0] == self.lastlyActiveNormalPath[0])
+        self.s.add(self.idTransitionNormalPath[0] != self.FAULT)
+        self.s.add(self.nopFaultyPath[0] == False)
+        self.s.add(self.nopNormalPath[0] == False)
+        self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == self.FAULT))
+
+        
+
     def addConstraintOnIdTransition(self, pos):
         """
         Add the constraint that fix the id of the transition pos in both
@@ -41,8 +64,6 @@ class Z3Model (Model):
         self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS, self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
 
 
-
-
     def incVariableList(self):
         """
         Increment all the list with one new z3 variable.
@@ -57,6 +78,7 @@ class Z3Model (Model):
         self.nopFaultyPath.append(Bool("nop_fp_" + str(idx)))
         self.nopNormalPath.append(Bool("nop_np_" + str(idx)))
         self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
+        self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
 
 
     def incBound(self):

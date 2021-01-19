@@ -31,21 +31,9 @@ class LDiagNoSymToZ3Model (Z3Model):
         :type nameFile: str
         """
         self.symActicated = False
-        super().__init__(nameFile)
-
-        # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
-        self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
-        self.s.add(self.normalPath[0] == len(self.transitionList) - 1)
-        self.s.add(self.faultyPath[0] == self.lastlyActiveFaultyPath[0])
-        self.s.add(self.normalPath[0] == self.lastlyActiveNormalPath[0])
-
-        self.s.add(self.idTransitionNormalPath[0] != self.FAULT)
-        self.s.add(self.nopFaultyPath[0] == False)
-        self.s.add(self.nopNormalPath[0] == False)
-        self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == self.FAULT))
-        self.s.add(self.cptFaultOccursByThePast[0] == self.faultOccursByThePast[0])
-
+        super().__init__(nameFile, False)
         self.addConstraintOnIdTransition(0)
+
 
 
     def addConstraintOnIdTransition(self, pos):
@@ -59,17 +47,11 @@ class LDiagNoSymToZ3Model (Z3Model):
         super().addConstraintOnIdTransition(pos)
 
 
-
     def incVariableList(self):
         """
         Increment all the list with one new z3 variable.
         """
         super().incVariableList()
-
-        # we increment the bound for the remaining variables.
-        idx = len(self.cptFaultOccursByThePast) + 1
-        self.cptFaultOccursByThePast.append(Int("cptFaultOccurs_" + str(idx)))
-        self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
 
 
     def incBound(self):
@@ -126,7 +108,7 @@ class LDiagNoSymToZ3Model (Z3Model):
         cpt = 1
         while cpt < (self.BOUND):
             cpt += 1
-            self.incBound()        
+            self.incBound()
 
         res = self.s.check()
         if res == sat:
