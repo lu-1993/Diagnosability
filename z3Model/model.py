@@ -100,3 +100,7 @@ class Model(ABC):
     @abstractmethod
     def incBound(self):
         pass
+
+    @abstractmethod
+    def addConstraintOnIdTransition(self, pos):
+        pass

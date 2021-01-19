@@ -23,6 +23,26 @@ class Z3Model (Model):
     # classic variable.
     symActicated = False
 
+    def addConstraintOnIdTransition(self, pos):
+        """
+        Add the constraint that fix the id of the transition pos in both
+        idTransitionFaultyPath and idTransitionNormalPath.
+
+        :param pos: the position of the operation we consider.
+        :type pos: int
+        """
+        # collect the label for the transition
+        for j in range(len(self.transitionList)):
+            self.s.add(Implies(self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.transitionList[j][2]))
+            self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.transitionList[j][2]))
+
+        # it is useless to go more than k after the first occurrence of the fault (=> we do not care if the critical pair is divergente).
+        # two paths have to agree on the observables.
+        self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS, self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
+
+
+
+
     def incVariableList(self):
         """
         Increment all the list with one new z3 variable.

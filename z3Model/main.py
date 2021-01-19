@@ -4,6 +4,7 @@
 import sys
 import argparse
 from kDiagToZ3Model import KDiagToZ3Model
+from lDiagNoSymToZ3Model import LDiagNoSymToZ3Model
 from kDiagRecarZ3Model import KDiagRecarZ3Model
 
 # Instantiate the options parser
@@ -16,13 +17,21 @@ parser.add_argument('--recar', default=False, action='store_true', help='Is the 
 args = parser.parse_args()
 
 if not args.recar:
+    z3Model = None
     if args.method == 'kDiag':
         print("[MAIN]", "K diagnosis process")
         z3Model = KDiagToZ3Model(args.file, args.symmetry)
-        z3Model.displayInfo()
-        z3Model.run()
     else:
         print("[MAIN]", "Loop diagnosis process")
+        if args.symmetry:
+            z3Model = LDiagNoSymToZ3Model(args.file)
+        else:
+            z3Model = LDiagNoSymToZ3Model(args.file)
+
+    assert z3Model != None
+    z3Model.displayInfo()
+    z3Model.run()
+
 else:
     if args.method == 'kDiag':
         print("[MAIN - RECAR]", "K diagnosis process")

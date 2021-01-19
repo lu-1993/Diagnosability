@@ -9,14 +9,13 @@ from z3Model import Z3Model
 # The faulty transition is labelled with 1
 # A non observable transition is labelled with 2
 
-class KDiagToZ3Model (Z3Model):
+class LDiagNoSymToZ3Model (Z3Model):
     # z3 variables.
     cptFaultOccursByThePast = [ Int("cptFaultOccurs_1") ]
     delta = Int("delta")
 
     # parameter
     BOUND = 0
-    K = 0
 
     # 'constants'
     NOP = 0
@@ -24,15 +23,15 @@ class KDiagToZ3Model (Z3Model):
     NO_OBS = 2
     NOP_TRANSITION = 0
 
-    def __init__(self, nameFile, symActicated):
+    def __init__(self, nameFile):
         """
         Constructor.
 
         :param nameFile: where is stored the automaton
         :type nameFile: str
         """
+        self.symActicated = False
         super().__init__(nameFile)
-        self.symActicated = symActicated
 
         # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
         self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
@@ -43,10 +42,7 @@ class KDiagToZ3Model (Z3Model):
         self.s.add(self.idTransitionNormalPath[0] != self.FAULT)
         self.s.add(self.nopFaultyPath[0] == False)
         self.s.add(self.nopNormalPath[0] == False)
-        self.s.add(self.delta == self.BOUND - self.K - 1)
         self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == self.FAULT))
-        self.s.add(Implies(self.delta <= 0, self.faultOccursByThePast[0]))
-        self.s.add(self.K >= 0)
         self.s.add(self.cptFaultOccursByThePast[0] == self.faultOccursByThePast[0])
 
         self.addConstraintOnIdTransition(0)
@@ -62,8 +58,6 @@ class KDiagToZ3Model (Z3Model):
         """
         super().addConstraintOnIdTransition(pos)
 
-        # count since when the first fault occurs
-        self.s.add(Or(self.cptFaultOccursByThePast[pos] - 1 > self.K, Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
 
 
     def incVariableList(self):
@@ -95,18 +89,11 @@ class KDiagToZ3Model (Z3Model):
         # we add the constraints that specify the id of the transition
         self.addConstraintOnIdTransition(idx)
 
-        # we have a fault soon enough.
-        self.s.add(Implies(self.delta <= idx, self.faultOccursByThePast[idx]))
-
-        # set the counter since when the fault occurs.
-        self.s.add(self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + (And(self.faultyPath[idx] != self.NOP_TRANSITION, self.faultOccursByThePast[idx])))
-
 
     def displayInfo(self):
         self.printAutomatonInfo()
-        print("[K DIAG] BOUND:", self.BOUND)
-        print("[K DIAG] K:", self.K)
-        print("[K DIAG] Symmetry activated:", self.symActicated)
+        print("[L DIAG] BOUND:", self.BOUND)
+        print("[L DIAG] Symmetry activated:", self.symActicated)
 
 
     def checkModel(self, model):
@@ -118,43 +105,7 @@ class KDiagToZ3Model (Z3Model):
         :param model: the model we want to check.
         :type model: a z3 model.
         """
-        delta = int(model.evaluate(self.delta).as_long())
-        assert(delta == (self.BOUND - self.K - 1))
-
-        previous = None
-        for i in range(len(self.faultyPath)):
-            v = int(model.evaluate(self.faultyPath[i]).as_long())
-            if i > 0:
-                lv = int(model.evaluate(self.lastlyActiveFaultyPath[i-1]).as_long())
-            id = int(model.evaluate(self.idTransitionFaultyPath[i]).as_long())
-            nop = model.evaluate(self.nopFaultyPath[i])
-            assert(id == 0 or self.transitionList[v][2] == id)
-
-            assert(nop or v != 0)
-            if previous != None:
-                assert(nop or self.transitionList[previous][1] == self.transitionList[v][0])
-                print(lv, previous)
-                assert(lv == previous)
-
-            if not nop:
-                previous = v
-
-        previous = None
-        for i in range(len(self.normalPath)):
-            v = int(model.evaluate(self.normalPath[i]).as_long())
-            if i > 0:
-                lv = int(model.evaluate(self.lastlyActiveNormalPath[i-1]).as_long())
-            id = int(model.evaluate(self.idTransitionNormalPath[i]).as_long())
-            nop = model.evaluate(self.nopNormalPath[i])
-            assert(id == 0 or self.transitionList[v][2] == id)
-
-            assert(nop or v != 0)
-            if previous != None:
-                assert(nop or self.transitionList[previous][1] == self.transitionList[v][0])
-                assert(lv == previous)
-
-            if not nop:
-                previous = v
+        # TODO
 
 
     def printModel(self, model):
@@ -165,13 +116,6 @@ class KDiagToZ3Model (Z3Model):
         :param model: the model we want to check.
         :type model: a z3 model.
         """
-        print("[K DIAG CEGAR] cptFaultOccursByThePast: ")
-        self.printOneIntArray(model, self.cptFaultOccursByThePast)
-
-        print("[K DIAG CEGAR] Delta:")
-        delta = int(model.evaluate(self.delta).as_long())
-        print(delta, "=", self.BOUND, "-", self.K, "-", 1)
-
         super().printModel(model)
 
 
@@ -182,9 +126,7 @@ class KDiagToZ3Model (Z3Model):
         cpt = 1
         while cpt < (self.BOUND):
             cpt += 1
-            self.incBound()
-
-        self.s.add(self.cptFaultOccursByThePast[-1] - 1 > self.K)
+            self.incBound()        
 
         res = self.s.check()
         if res == sat:
