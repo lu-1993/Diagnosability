@@ -71,8 +71,8 @@ class LDiagNoSymToZ3Model (Z3Model):
         self.s.add(Implies(self.startLoop == pos, self.faultOccursByThePast[pos]))
 
         for j in range(len(self.transitionList)):
-            self.s.add(Implies(self.faultyPath[pos] == j, self.stateFaultyPath[pos] == self.transitionList[j][0]))
-            self.s.add(Implies(self.normalPath[pos] == j, self.stateNormalPath[pos] == self.transitionList[j][0]))
+            self.s.add(Implies(self.faultyPath[pos - 1] == j, self.stateFaultyPath[pos] == self.transitionList[j][1]))
+            self.s.add(Implies(self.normalPath[pos - 1] == j, self.stateNormalPath[pos] == self.transitionList[j][1]))
 
         if pos > 0:
             self.s.add(Implies(self.startLoop == pos - 1, self.projStartStateNormal == self.stateNormalPath[pos]))
