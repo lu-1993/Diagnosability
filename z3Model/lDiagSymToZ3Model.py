@@ -88,8 +88,8 @@ class LDiagSymToZ3Model (Z3Model):
         self.s.add(Implies(self.startLoopFaulty == pos, self.faultOccursByThePast[pos]))
 
         for j in range(len(self.transitionList)):
-            self.s.add(Implies(self.faultyPath[pos] == j, self.stateFaultyPath[pos] == self.transitionList[j][0]))
-            self.s.add(Implies(self.normalPath[pos] == j, self.stateNormalPath[pos] == self.transitionList[j][0]))
+            self.s.add(Implies(self.faultyPath[pos - 1] == j, self.stateFaultyPath[pos] == self.transitionList[j][1]))
+            self.s.add(Implies(self.normalPath[pos - 1] == j, self.stateNormalPath[pos] == self.transitionList[j][1]))
 
         if pos > 0:
             self.s.add(Implies(self.startLoopNormal == pos - 1, self.projStartStateNormal == self.stateNormalPath[pos]))
@@ -98,14 +98,15 @@ class LDiagSymToZ3Model (Z3Model):
 
         self.s.add(Implies(self.startLoopNormal == pos, self.projStartRankNormal == self.rankObservableInPath[pos]))
         self.s.add(Implies(self.startLoopFaulty == pos, self.projStartRankFaulty == self.rankObservableInPath[pos]))
-        self.s.add(Implies(self.endLoopNormal == pos, self.projEndRankNormal == self.rankObservableInPath[pos]))
-        self.s.add(Implies(self.endLoopFaulty == pos, self.projEndRankFaulty == self.rankObservableInPath[pos]))
-
+        self.s.add(Implies(self.endLoopNormal == pos, self.projEndRankNormal == self.rankObservableInPath[pos - 1]))
+        self.s.add(Implies(self.endLoopFaulty == pos, self.projEndRankFaulty == self.rankObservableInPath[pos - 1]))
 
         self.s.add(Implies(self.endLoopNormal == pos, self.projEndStateNormal == self.stateNormalPath[pos]))
         self.s.add(Implies(self.endLoopFaulty == pos, self.projEndStateFaulty == self.stateFaultyPath[pos]))
 
-        self.s.add(Or(self.startLoopNormal < pos, self.startLoopFaulty < pos, Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
+        self.s.add(self.projStartRankNormal != -1)
+        self.s.add(self.projStartRankFaulty != -1)
+        self.s.add(Or(And(self.startLoopNormal < pos, self.startLoopFaulty < pos), Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
 
 
     def incVariableList(self):
@@ -118,6 +119,7 @@ class LDiagSymToZ3Model (Z3Model):
         self.stateFaultyPath.append(Int("stateF_" + str(idx)))
         self.stateNormalPath.append(Int("stateN_" + str(idx)))
         self.rankObservableInPath.append(Int("rankObs_" + str(idx)))
+
 
     def incBound(self):
         """
