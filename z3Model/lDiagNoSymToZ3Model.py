@@ -81,7 +81,7 @@ class LDiagNoSymToZ3Model (Z3Model):
         self.s.add(Implies(self.endLoop == pos, self.projEndStateNormal == self.stateNormalPath[pos]))
         self.s.add(Implies(self.endLoop == pos, self.projEndStateFaulty == self.stateFaultyPath[pos]))
 
-        self.s.add(Or(self.endLoop < pos, Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
+        self.s.add(Or(self.startLoop < pos, Not(self.checkSynchro[pos]), self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos]))
 
 
     def incVariableList(self):
