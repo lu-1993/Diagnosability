@@ -8,4 +8,5 @@ Initial_state 0 Bound 10 K_value 2 observable={o1,o2,o3} unobservable={un1,un2} 
 5 un2 6
 6 o3 7
 7 o3 8
-8 o3 8
+8 o3 1
+4 o3 1

@@ -94,11 +94,13 @@ class LDiagSymToZ3Model (Z3Model):
         if pos > 0:
             self.s.add(Implies(self.startLoopNormal == pos - 1, self.projStartStateNormal == self.stateNormalPath[pos]))
             self.s.add(Implies(self.startLoopFaulty == pos - 1, self.projStartStateFaulty == self.stateFaultyPath[pos]))
-
-            self.s.add(Implies(self.startLoopNormal == pos, self.projStartRankNormal == self.rankObservableInPath[pos]))
-            self.s.add(Implies(self.startLoopFaulty == pos, self.projStartRankFaulty == self.rankObservableInPath[pos]))
-
             self.s.add(self.rankObservableInPath[pos] == self.checkSynchro[pos] + self.rankObservableInPath[pos -1])
+
+        self.s.add(Implies(self.startLoopNormal == pos, self.projStartRankNormal == self.rankObservableInPath[pos]))
+        self.s.add(Implies(self.startLoopFaulty == pos, self.projStartRankFaulty == self.rankObservableInPath[pos]))
+        self.s.add(Implies(self.endLoopNormal == pos, self.projEndRankNormal == self.rankObservableInPath[pos]))
+        self.s.add(Implies(self.endLoopFaulty == pos, self.projEndRankFaulty == self.rankObservableInPath[pos]))
+
 
         self.s.add(Implies(self.endLoopNormal == pos, self.projEndStateNormal == self.stateNormalPath[pos]))
         self.s.add(Implies(self.endLoopFaulty == pos, self.projEndStateFaulty == self.stateFaultyPath[pos]))
