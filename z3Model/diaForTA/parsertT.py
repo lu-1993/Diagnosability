@@ -78,7 +78,7 @@ class Parser:
             if currentState > maxstate:
                 maxstate = currentState
 
-        invariantsList = [1 for i in range(0,8)]
+        invariantsList = [1 for i in range(0,maxstate)]
 
         for i in range(transitionNum+2,len(context)):
             state = int(context[i].split(' ')[0])
