@@ -32,19 +32,6 @@ class Parser:
                 " ")[0].split(',')[0]) - int(initState)
             finalState = int(context[i].split(
                 " ")[2].split(',')[0]) - int(initState)
-            '''
-            if len(context[i].split(" ")[0].split(',')) > 1:
-                sourceInv = context[i].split(" ")[0].split(',')[1]
-            else:
-                sourceInv = 1
-                
-            finalState = int(context[i].split(" ")[2].split(',')[0]) - int(initState)
-            if len(context[i].split(" ")[2].split(',')) > 1:
-                finalInv = context[i].split(" ")[2].split(',')[1]
-            else:
-                finalInv = 1
-            '''
-
             event = context[i].split(" ")[1]
 
             if event == "f":
@@ -59,9 +46,7 @@ class Parser:
             reset = context[i].split(" ")[4].split("\n")[0]
 
             transition.append(sourceState)
-            # transition.append(sourceInv)
             transition.append(finalState)
-            # transition.append(finalInv)
             transition.append(event)
             transition.append(guard)
             transition.append(reset)
@@ -84,12 +69,11 @@ class Parser:
             inv = context[i].split(' ')[1].split("\n")[0]
             invariantsList[state] = inv
 
-        for i in transitionList:
-            print(i)
+        for transition in transitionList:
             state = int(i[0])
-            i.insert(1, invariantsList[state])
+            transition.insert(1, invariantsList[state])
             state = int(i[2])
-            i.insert(3, invariantsList[state])
+            transition.insert(3, invariantsList[state])
 
         file.close()
         return initState, transitionList, bound, delta, len(clockList)
