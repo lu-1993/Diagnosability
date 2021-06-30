@@ -28,9 +28,6 @@ class Z3Model:
         self.initState, self.transitionList, self.BOUND, self.DELTA, self.clockNum = self.p.parse(
             sys.argv[1])
 
-        print(self.transitionList)
-        sys.exit(0)
-
         # automaton description.
         self.initState = 0
         #transitionList = []
@@ -58,8 +55,8 @@ class Z3Model:
             Real("cptFaultOccurs_1")]  # store delta
         self.cptFaultOccursByThePast.append(Real("cptFaultOccurs_2"))
 
-        self.globleClockFaultyPath = [Real("g_fp_1")]
-        self.globleClockNormalPath = [Real("g_np_1")]
+        self.globalClockFaultyPath = [Real("g_fp_1")]
+        self.globalClockNormalPath = [Real("g_np_1")]
 
         self.delayClockFaultyPath = [Real("delay_fp_1")]
         self.delayClockNormalPath = [Real("delay_np_1")]
@@ -174,9 +171,9 @@ class Z3Model:
             self.s.add(self.clockValueFaultyPath[i] == 0)
             self.s.add(self.clockValueNormalPath[i] == 0)
 
-        # globle clock is initialized to 0 in the first transition
-        self.s.add(self.globleClockFaultyPath[0] == 0)
-        self.s.add(self.globleClockNormalPath[0] == 0)
+        # global clock is initialized to 0 in the first transition
+        self.s.add(self.globalClockFaultyPath[0] == 0)
+        self.s.add(self.globalClockNormalPath[0] == 0)
 
         self.s.add(self.idTransitionNormalPath[0] != self.FAULT)
         self.s.add(self.nopFaultyPath[0] == False)
@@ -268,9 +265,9 @@ class Z3Model:
 
         # global clock progress
         self.s.add(
-            self.globleClockFaultyPath[pos] == self.globleClockFaultyPath[pos-1] + self.delayClockFaultyPath[pos])
+            self.globalClockFaultyPath[pos] == self.globalClockFaultyPath[pos-1] + self.delayClockFaultyPath[pos])
         self.s.add(
-            self.globleClockNormalPath[pos] == self.globleClockNormalPath[pos-1] + self.delayClockNormalPath[pos])
+            self.globalClockNormalPath[pos] == self.globalClockNormalPath[pos-1] + self.delayClockNormalPath[pos])
 
         # delay of nop is 0
         self.s.add(
@@ -288,7 +285,7 @@ class Z3Model:
         self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS,
                    self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
         self.s.add(Or(Not(self.checkSynchro[pos]), And(self.idTransitionFaultyPath[pos] ==
-                   self.idTransitionNormalPath[pos], self.globleClockFaultyPath[pos] == self.globleClockNormalPath[pos])))
+                   self.idTransitionNormalPath[pos], self.globalClockFaultyPath[pos] == self.globalClockNormalPath[pos])))
 
     def incVariableList(self):
         """
@@ -307,8 +304,8 @@ class Z3Model:
         #self.cptFaultOccursByThePast.append(Real("cptFaultOccurs_" + str(idx)))
         self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
 
-        self.globleClockFaultyPath.append(Real("g_fp_" + str(idx)))
-        self.globleClockNormalPath.append(Real("g_np_" + str(idx)))
+        self.globalClockFaultyPath.append(Real("g_fp_" + str(idx)))
+        self.globalClockNormalPath.append(Real("g_np_" + str(idx)))
 
         self.delayClockFaultyPath.append(Real("delay_fp_" + str(idx+1)))
         self.delayClockNormalPath.append(Real("delay_np_" + str(idx+1)))
@@ -576,10 +573,10 @@ class Z3Model:
         self.printOneBoolArray(model, self.checkSynchro)
         print("labelTransition")
         self.printOneIntArray(model, self.labelTransition)
-        print("globleClockFaultyPath")
-        self.printOneRealArray(model, self.globleClockFaultyPath, cpt)
-        print("globleClockNormalPath")
-        self.printOneRealArray(model, self.globleClockNormalPath, cpt)
+        print("globalClockFaultyPath")
+        self.printOneRealArray(model, self.globalClockFaultyPath, cpt)
+        print("globalClockNormalPath")
+        self.printOneRealArray(model, self.globalClockNormalPath, cpt)
 
         print("delta")
         self.printOneRealArray(model, self.cptFaultOccursByThePast, cpt+1)
@@ -814,7 +811,7 @@ class Z3Model:
             else:
                 print("Increase the bound:", len(self.faultyPath) + 1)
 
-        print (self.s.unsat_core())
+        print(self.s.unsat_core())
 
         print("The problem is UNSAT")
 
