@@ -5,11 +5,10 @@ class Parser:
     def __init__(self):
         pass
 
-
-    def parse(self, nameFile : str):
+    def parse(self, nameFile: str):
 
         file = open(nameFile, "r")
-        context = file.readlines()  #contest store all txt transitions and parameters
+        context = file.readlines()  # contest store all txt transitions and parameters
 
         initState = int(context[0].split(" ")[1])
         bound = int(context[0].split(" ")[3])
@@ -29,9 +28,10 @@ class Parser:
 
             transition = []
 
-
-            sourceState = int(context[i].split(" ")[0].split(',')[0]) - int(initState)
-            finalState = int(context[i].split(" ")[2].split(',')[0]) - int(initState)
+            sourceState = int(context[i].split(
+                " ")[0].split(',')[0]) - int(initState)
+            finalState = int(context[i].split(
+                " ")[2].split(',')[0]) - int(initState)
             '''
             if len(context[i].split(" ")[0].split(',')) > 1:
                 sourceInv = context[i].split(" ")[0].split(',')[1]
@@ -59,13 +59,12 @@ class Parser:
             reset = context[i].split(" ")[4].split("\n")[0]
 
             transition.append(sourceState)
-            #transition.append(sourceInv)
+            # transition.append(sourceInv)
             transition.append(finalState)
-            #transition.append(finalInv)
+            # transition.append(finalInv)
             transition.append(event)
             transition.append(guard)
             transition.append(reset)
-
 
             transitionList.append(transition)
 
@@ -73,31 +72,24 @@ class Parser:
         for i in transitionList:
             currentState = int(i[0])
             if currentState > maxstate:
-                maxstate= currentState
+                maxstate = currentState
             currentState = int(i[1])
             if currentState > maxstate:
                 maxstate = currentState
 
-        invariantsList = [1 for i in range(0,maxstate)]
+        invariantsList = [1 for i in range(0, maxstate+1)]
 
-        for i in range(transitionNum+2,len(context)):
+        for i in range(transitionNum+2, len(context)):
             state = int(context[i].split(' ')[0])
             inv = context[i].split(' ')[1].split("\n")[0]
-
             invariantsList[state] = inv
 
         for i in transitionList:
+            print(i)
             state = int(i[0])
-            i.insert(1,invariantsList[state])
+            i.insert(1, invariantsList[state])
             state = int(i[2])
-            i.insert(3,invariantsList[state])
-
-        #for i in transitionlist:
-
-
+            i.insert(3, invariantsList[state])
 
         file.close()
         return initState, transitionList, bound, delta, len(clockList)
-
-
-

@@ -1,4 +1,4 @@
-Initial_state 0 Bound 10 K_value 2 observable={o1,o2,o3,o4,o5} unobservable={un1,un2,un3,un3,un4,un5} fault={f}
+Initial_state 0 Bound 20 K_value 2 observable={o1,o2,o3,o4,o5} unobservable={un1,un2,un3,un3,un4,un5} fault={f}
 0 o3 1
 0 un5 2
 2 un5 3
