@@ -71,6 +71,9 @@ class Parser:
             transition.append(sourceState)
             transition.append(finalState)
             transition.append(event)
+
+            print(guard)
+
             transition.append(guard)
             transition.append(resetList)
 

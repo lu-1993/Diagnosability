@@ -234,7 +234,6 @@ class Z3Model:
 
         # clocks progress
         for j in range(self.clockNum):
-
             self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == True, self.clockValueFaultyPath[(
                 pos+1) * self.clockNum + j] == 0 + self.delayClockFaultyPath[pos+1]))
 
