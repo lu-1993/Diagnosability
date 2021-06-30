@@ -44,12 +44,17 @@ class Parser:
             guard = context[i].split(" ")[3].split(";")
 
             reset = context[i].split(" ")[4].split("\n")[0]
+            resetList = []
+            if reset != '0':
+                for elt in reset.split(';'):
+                    v = int(elt[1:])
+                    resetList.append(v - 1)
 
             transition.append(sourceState)
             transition.append(finalState)
             transition.append(event)
             transition.append(guard)
-            transition.append(reset)
+            transition.append(resetList)
 
             transitionList.append(transition)
 

@@ -30,7 +30,7 @@ class Z3Model:
 
         # automaton description.
         self.initState = 0
-        #transitionList = []
+        # transitionList = []
         self.nextTransition = []   # this list only store index of the transitions
         self.idxAssum = 0
         self.maxLabelTransition = 0
@@ -99,7 +99,7 @@ class Z3Model:
 
         # we add a transition, that is the nop transition, in position 0 in the transitionList
         self.transitionList.insert(
-            0, [-1, 1, -1, 1, 0, ['c' + str(i+1) + ">=0" for i in range(self.clockNum)], '0'])
+            0, [-1, 1, -1, 1, 0, ['c' + str(i+1) + ">=0" for i in range(self.clockNum)], []])
 
         self.nextTransition = [[self.NOP_TRANSITION] for i in range(
             len(self.transitionList))]  # they can all do nop
@@ -117,15 +117,12 @@ class Z3Model:
                 if (self.transitionList[i][2] == self.transitionList[j][0]):
                     self.nextTransition[i].append(j)
 
-        nopReset = ""  # norReset used to build nop reset string "c1,c2......" based on clock list
-        for i in range(self.clockNum):
-            nopReset = nopReset + "c" + str(i+1) + ";"
-        nopReset = nopReset[:-1]
-
         # we add a transition to start the two path identically.
         self.maxLabelState += 1
+
+        ####################################
         self.transitionList.append([self.maxLabelState, 1, self.initState, 1, 2, [
-                                   'c' + str(i+1) + "=0" for i in range(self.clockNum)], nopReset])
+                                   'c' + str(i+1) + "=0" for i in range(self.clockNum)], list(range(self.clockNum))])
         self.nextTransition.append([self.NOP_TRANSITION])
         self.nextTransition[-1] += [idx for idx in range(
             len(self.transitionList)) if self.transitionList[idx][0] == self.initState]
@@ -136,8 +133,11 @@ class Z3Model:
                                 for i in range(len(self.transitionList))]
 
         # we assign reset constraint for each transtion
-        self.resetTransition = [Int("resetTransition_" + str(i+1))
-                                for i in range(len(self.transitionList) * self.clockNum)]
+        self.resetTransition = [
+            [0 for j in range(len(self.transitionList))] for i in range(self.clockNum)]
+        for t in self.transitionList:
+            print(t)
+        sys.exit(0)
 
         # we assign a clock constraints in clockTransition list in order.
         for i in range(len(self.transitionList)):
@@ -148,7 +148,7 @@ class Z3Model:
                 self.maxLabelTransition = self.transitionList[i][4]
 
         # the first transition is labelled with 0: it is the NOP transition NOP: event = 0
-        #event = 0
+        # event = 0
         self.s.add(self.labelTransition[0] == 0)
 
         # all the clock are reset
@@ -301,7 +301,7 @@ class Z3Model:
         self.nopFaultyPath.append(Bool("nop_fp_" + str(idx)))
         self.faultOccursByThePast.append(Bool("faultOccurs_" + str(idx)))
         self.nopNormalPath.append(Bool("nop_np_" + str(idx)))
-        #self.cptFaultOccursByThePast.append(Real("cptFaultOccurs_" + str(idx)))
+        # self.cptFaultOccursByThePast.append(Real("cptFaultOccurs_" + str(idx)))
         self.checkSynchro.append(Bool("checkSynchro_" + str(idx)))
 
         self.globalClockFaultyPath.append(Real("g_fp_" + str(idx)))
@@ -414,8 +414,8 @@ class Z3Model:
         self.s.add(Implies(self.faultOccursByThePast[idx] == True, self.cptFaultOccursByThePast[idx+1]
                    == self.cptFaultOccursByThePast[idx] + self.delayClockFaultyPath[idx+1]))
 
-        #self.s.add(Implies(And(self.faultOccursByThePast[idx-2] == False, self.faultOccursByThePast[idx-1] == True), self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + self.delayClockFaultyPath[idx] + self.delayClockFaultyPath[idx + 1]))
-        #self.s.add(Implies(And(self.faultOccursByThePast[idx-2] == True, self.faultOccursByThePast[idx-1] == True), self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1]  + self.delayClockFaultyPath[idx + 1]))
+        # self.s.add(Implies(And(self.faultOccursByThePast[idx-2] == False, self.faultOccursByThePast[idx-1] == True), self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + self.delayClockFaultyPath[idx] + self.delayClockFaultyPath[idx + 1]))
+        # self.s.add(Implies(And(self.faultOccursByThePast[idx-2] == True, self.faultOccursByThePast[idx-1] == True), self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1]  + self.delayClockFaultyPath[idx + 1]))
 
     def printAutomatonInfo(self):
         """
@@ -452,10 +452,10 @@ class Z3Model:
         :param model: the model we want to check.
         :type model: a z3 model.
         """
-        #delta = int(model.evaluate(self.delta).as_long())
+        # delta = int(model.evaluate(self.delta).as_long())
         bound = int(model.evaluate(self.bound).as_long())
-        #k = int(model.evaluate(self.k).as_long())
-        #assert(delta == (bound - k - 1))
+        # k = int(model.evaluate(self.k).as_long())
+        # assert(delta == (bound - k - 1))
 
         previous = None
         for i in range(len(self.faultyPath)):
@@ -562,7 +562,7 @@ class Z3Model:
         print("idTransitionNormalPath: ")
         self.printOneIntArray(model, self.idTransitionNormalPath)
         print("cptFaultOccursByThePast: ")
-        #self.printOneIntArray(model, self.cptFaultOccursByThePast)
+        # self.printOneIntArray(model, self.cptFaultOccursByThePast)
         print("nopFaultyPath:")
         self.printOneBoolArray(model, self.nopFaultyPath)
         print("nopNormalPath: ")
@@ -786,14 +786,14 @@ class Z3Model:
 
             self.s.add(
                 Implies(assumF, self.cptFaultOccursByThePast[-1] == self.DELTA))
-            #self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1]> self.delta))
+            # self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1]> self.delta))
 
             assumFO = Bool("fo" + str(self.idxAssum))
             self.s.add(Implies(assumFO, self.faultOccursByThePast[-1] == True))
 
             # if BOUND is real, except nop, this part should be used.
-            #self.s.add(self.lengthFaultyPath[-1] <= self.BOUND)
-            #self.s.add(self.lengthNormalPath[-1] <= self.BOUND)
+            # self.s.add(self.lengthFaultyPath[-1] <= self.BOUND)
+            # self.s.add(self.lengthNormalPath[-1] <= self.BOUND)
 
             res = self.s.check(assumD, assumB, assumF, assumFO)
 
@@ -818,7 +818,7 @@ class Z3Model:
 
 # the automata.
 assert(len(sys.argv) == 2)
-#z3Model = Z3Model(sys.argv[1])
+# z3Model = Z3Model(sys.argv[1])
 z3Model = Z3Model()
 z3Model.printAutomatonInfo()
 start = time.time()
