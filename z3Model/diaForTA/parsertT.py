@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+from collections import defaultdict
+
 
 class Parser:
     def __init__(self):
@@ -13,6 +15,22 @@ class Parser:
         initState = int(context[0].split(" ")[1])
         bound = int(context[0].split(" ")[3])
         delta = int(context[0].split(" ")[5])
+
+        observable = context[0].split(" ")[6].split(
+            "{")[1].split("}")[0].split(",")
+        unobservable = context[0].split(" ")[7].split(
+            "{")[1].split("}")[0].split(",")
+
+        event_dict = defaultdict(int)
+
+        for i in range(0, len(observable)):
+            key = observable[i]
+            value = i+3
+            event_dict[key] = value
+        for i in range(0, len(unobservable)):
+            key = unobservable[i]
+            value = 2
+            event_dict[key] = value
 
         clockString = context[0].split(" ")[9]
         clockList = clockString.split("{")[1].split("}")[0].split(",")
@@ -36,10 +54,10 @@ class Parser:
 
             if event == "f":
                 event = 1
-            elif "u" in event:
-                event = 2
             else:
-                event = int(event.strip('o')) + 2
+                event = event_dict[event]
+            # else:
+             #   event = int(event.strip('o')) + 2
 
             guard = context[i].split(" ")[3].split(";")
 
