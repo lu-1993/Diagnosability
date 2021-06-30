@@ -137,6 +137,9 @@ class Z3Model:
             [0 for j in range(len(self.transitionList))] for i in range(self.clockNum)]
         for t in self.transitionList:
             print(t)
+
+        for rt in self.resetTransition:
+            print(rt)
         sys.exit(0)
 
         # we assign a clock constraints in clockTransition list in order.
