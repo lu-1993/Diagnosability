@@ -38,7 +38,6 @@ class Z3Model:
 
         # z3 variables.
         self.labelTransition = []
-        self.resetTransition = []
         self.clockTransition = []
 
         self.faultyPath = [Int("fp_1")]
@@ -134,13 +133,11 @@ class Z3Model:
 
         # we assign reset constraint for each transtion
         self.resetTransition = [
-            [0 for j in range(len(self.transitionList))] for i in range(self.clockNum)]
-        for t in self.transitionList:
-            print(t)
-
-        for rt in self.resetTransition:
-            print(rt)
-        sys.exit(0)
+            [False for j in range(len(self.transitionList))] for i in range(self.clockNum)]
+        for i in range(len(self.transitionList)):
+            t = self.transitionList[i]
+            for c in t[-1]:
+                self.resetTransition[c][i] = True
 
         # we assign a clock constraints in clockTransition list in order.
         for i in range(len(self.transitionList)):
@@ -153,10 +150,6 @@ class Z3Model:
         # the first transition is labelled with 0: it is the NOP transition NOP: event = 0
         # event = 0
         self.s.add(self.labelTransition[0] == 0)
-
-        # all the clock are reset
-        for i in range(self.clockNum):
-            self.s.add(self.resetTransition[i] == 0)
 
         # The status for a transition can be 0 for a NOP, 1 for fault, 2 for an non observable and at least 3 for an observable event.
         self.s.add(And([And(x >= 0, x <= self.maxLabelTransition)
@@ -222,9 +215,9 @@ class Z3Model:
 
             for i in range(self.clockNum):
                 self.s.add(Implies(self.faultyPath[pos] == j, self.resetConstraintFaultyPath[pos *
-                           self.clockNum + i] == self.resetTransition[j*self.clockNum + i]))
+                           self.clockNum + i] == self.resetTransition[i][j]))
                 self.s.add(Implies(self.normalPath[pos] == j, self.resetConstraintNormalPath[pos *
-                           self.clockNum + i] == self.resetTransition[j*self.clockNum + i]))
+                           self.clockNum + i] == self.resetTransition[i][j]))
 
                 self.s.add(Implies(self.faultyPath[pos] == j, self.sourceInvFaultyPath[pos * self.clockNum + i] == And(
                     self.parseInv(self.transitionList[j][1], i, pos, 'f'))))
@@ -242,16 +235,16 @@ class Z3Model:
         # clocks progress
         for j in range(self.clockNum):
 
-            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == 1, self.clockValueFaultyPath[(
+            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == True, self.clockValueFaultyPath[(
                 pos+1) * self.clockNum + j] == 0 + self.delayClockFaultyPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == 0, self.clockValueFaultyPath[(
+            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == False, self.clockValueFaultyPath[(
                 pos+1) * self.clockNum + j] == self.clockValueFaultyPath[pos * self.clockNum + j] + self.delayClockFaultyPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == 1, self.clockValueNormalPath[(
+            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == True, self.clockValueNormalPath[(
                 pos+1) * self.clockNum + j] == 0 + self.delayClockNormalPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == 0, self.clockValueNormalPath[(
+            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == False, self.clockValueNormalPath[(
                 pos+1) * self.clockNum + j] == self.clockValueNormalPath[pos * self.clockNum + j] + self.delayClockNormalPath[pos+1]))
 
             self.s.add(And(self.sourceInvFaultyPath[pos * self.clockNum + j] ==
@@ -766,10 +759,6 @@ class Z3Model:
 
         for i in range(len(self.transitionList)):
             self.s.add(self.labelTransition[i] == self.transitionList[i][4])
-
-            for j in range(self.clockNum):
-                self.s.add(self.resetTransition[i*self.clockNum+j]
-                           == self.transReset(self.transitionList[i][6])[j])
 
         cpt = 1
 
