@@ -28,6 +28,9 @@ class Z3Model:
         self.initState, self.transitionList, self.BOUND, self.DELTA, self.clockNum = self.p.parse(
             sys.argv[1])
 
+        print(self.transitionList)
+        sys.exit(0)
+
         # automaton description.
         self.initState = 0
         #transitionList = []
@@ -90,9 +93,9 @@ class Z3Model:
         self.lengthNormalPath = [Int("normal_np_1")]
 
         self.resetConstraintFaultyPath = [
-            Int("reset" + str(i + 1) + "_fp_1") for i in range(self.clockNum)]
+            Bool("reset" + str(i + 1) + "_fp_1") for i in range(self.clockNum)]
         self.resetConstraintNormalPath = [
-            Int("reset" + str(i + 1) + "_np_1") for i in range(self.clockNum)]
+            Bool("reset" + str(i + 1) + "_np_1") for i in range(self.clockNum)]
 
         self.bound = Int("bound")
         self.delta = Int("delta")
@@ -263,7 +266,7 @@ class Z3Model:
         self.s.add(self.delayClockNormalPath[pos+1] >= 0)
         self.s.add(self.delayClockFaultyPath[pos+1] >= 0)
 
-        # globle clock progress
+        # global clock progress
         self.s.add(
             self.globleClockFaultyPath[pos] == self.globleClockFaultyPath[pos-1] + self.delayClockFaultyPath[pos])
         self.s.add(
