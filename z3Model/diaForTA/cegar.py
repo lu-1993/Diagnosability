@@ -11,93 +11,98 @@ import time
 # The faulty transition is labelled with 1
 # A non observable transition is labelled with 2
 
+
 class Z3Model:
-    # z3 solver.
-    s = Solver()
-
-    # parse the file and store the automaton
-    p = Parser()
-    initState, transitionList, BOUND, DELTA, clockNum = p.parse(sys.argv[1])
-
-
-    # automaton description.
-    initState = 0
-    #transitionList = []
-    nextTransition = []   # this list only store index of the transitions
-    idxAssum = 0
-    maxLabelTransition = 0
-    maxLabelState = 0
-
-    # z3 variables.
-    labelTransition = []
-    resetTransition = []
-    clockTransition = []
-
-    faultyPath = [ Int("fp_1") ]
-    normalPath = [ Int("np_1") ]
-    lastlyActiveFaultyPath = [ Int("lfp_1") ]
-    lastlyActiveNormalPath = [ Int("lnp_1") ]
-    idTransitionFaultyPath = [ Int("idt_fp_1") ]
-    idTransitionNormalPath = [ Int("idt_np_1") ]
-    nopFaultyPath = [ Bool("nop_fp_1") ]
-    nopNormalPath = [ Bool("nop_np_1") ]
-    faultOccursByThePast = [ Bool("faultOccurs_1") ]
-    checkSynchro = [ Bool("check_synchro_1") ]
-    cptFaultOccursByThePast = [ Real("cptFaultOccurs_1") ]  # store delta
-    cptFaultOccursByThePast.append(Real("cptFaultOccurs_2"))
-
-
-    globleClockFaultyPath = [ Real("g_fp_1") ]
-    globleClockNormalPath = [ Real("g_np_1") ]
-
-    delayClockFaultyPath = [ Real("delay_fp_1") ]
-    delayClockNormalPath = [ Real("delay_np_1") ]
-    delayClockFaultyPath.append(Real("delay_fp_2" ))
-    delayClockNormalPath.append(Real("delay_np_2" ))
-
-    clockConstraintFaultyPath = [Bool("constraint_fp_1")]
-    clockConstraintNormalPath = [Bool("constraint_np_1")]
-
-    clockValueFaultyPath = [ Real("clock"+str(i+1)+"_fp_1") for i in range(clockNum) ]
-    clockValueNormalPath = [ Real("clock"+str(i+1)+"_np_1") for i in range(clockNum) ]
-
-    for i in range(clockNum):  # reset need next clock value
-        clockValueFaultyPath.append(Real("clock" + str(i+1) + "_fp_2"))
-        clockValueNormalPath.append(Real("clock" + str(i+1) + "_np_2"))
-
-    sourceInvFaultyPath = [ Bool("sourceInv"+str(i+1)+'_fp_1') for i in range(clockNum)]
-    sourceInvNormalPath = [ Bool("sourceInv"+str(i+1)+'_np_1') for i in range(clockNum)]
-    finalInvFaultyPath = [ Bool("finalInv"+str(i+1)+'_fp_1') for i in range(clockNum)]
-    finalInvNormalPath = [ Bool("finalInv"+str(i+1)+'_np_1') for i in range(clockNum)]
-
-    lengthFaultyPath = [Int("length_fp_1")]
-    lengthNormalPath = [Int("normal_np_1")]
-
-    resetConstraintFaultyPath = [Int("reset" + str(i + 1) + "_fp_1") for i in range(clockNum)]
-    resetConstraintNormalPath = [Int("reset" + str(i + 1) + "_np_1") for i in range(clockNum)]
-
-
     # 'constants'
     NOP = 0
     FAULT = 1
     NO_OBS = 2
     NOP_TRANSITION = 0
 
-    bound = Int("bound")
-    delta = Int("delta")
-
     def __init__(self):
+        # z3 solver.
+        self.s = Solver()
 
         # parse the file and store the automaton
-        #p = Parser()
-        #self.initState, self.transitionList, self.BOUND, self.DELTA, self.numClock= p.parse(nameFile)
+        self.p = Parser()
+        self.initState, self.transitionList, self.BOUND, self.DELTA, self.clockNum = self.p.parse(
+            sys.argv[1])
+
+        # automaton description.
+        self.initState = 0
+        #transitionList = []
+        self.nextTransition = []   # this list only store index of the transitions
+        self.idxAssum = 0
+        self.maxLabelTransition = 0
+        self.maxLabelState = 0
+
+        # z3 variables.
+        self.labelTransition = []
+        self.resetTransition = []
+        self.clockTransition = []
+
+        self.faultyPath = [Int("fp_1")]
+        self.normalPath = [Int("np_1")]
+        self.lastlyActiveFaultyPath = [Int("lfp_1")]
+        self.lastlyActiveNormalPath = [Int("lnp_1")]
+        self.idTransitionFaultyPath = [Int("idt_fp_1")]
+        self.idTransitionNormalPath = [Int("idt_np_1")]
+        self.nopFaultyPath = [Bool("nop_fp_1")]
+        self.nopNormalPath = [Bool("nop_np_1")]
+        self.faultOccursByThePast = [Bool("faultOccurs_1")]
+        self.checkSynchro = [Bool("check_synchro_1")]
+        self.cptFaultOccursByThePast = [
+            Real("cptFaultOccurs_1")]  # store delta
+        self.cptFaultOccursByThePast.append(Real("cptFaultOccurs_2"))
+
+        self.globleClockFaultyPath = [Real("g_fp_1")]
+        self.globleClockNormalPath = [Real("g_np_1")]
+
+        self.delayClockFaultyPath = [Real("delay_fp_1")]
+        self.delayClockNormalPath = [Real("delay_np_1")]
+        self.delayClockFaultyPath.append(Real("delay_fp_2"))
+        self.delayClockNormalPath.append(Real("delay_np_2"))
+
+        self.clockConstraintFaultyPath = [Bool("constraint_fp_1")]
+        self.clockConstraintNormalPath = [Bool("constraint_np_1")]
+
+        self.clockValueFaultyPath = [
+            Real("clock"+str(i+1)+"_fp_1") for i in range(self.clockNum)]
+        self.clockValueNormalPath = [
+            Real("clock"+str(i+1)+"_np_1") for i in range(self.clockNum)]
+
+        for i in range(self.clockNum):  # reset need next clock value
+            self.clockValueFaultyPath.append(
+                Real("clock" + str(i+1) + "_fp_2"))
+            self.clockValueNormalPath.append(
+                Real("clock" + str(i+1) + "_np_2"))
+
+        self.sourceInvFaultyPath = [
+            Bool("sourceInv"+str(i+1)+'_fp_1') for i in range(self.clockNum)]
+        self.sourceInvNormalPath = [
+            Bool("sourceInv"+str(i+1)+'_np_1') for i in range(self.clockNum)]
+        self.finalInvFaultyPath = [
+            Bool("finalInv"+str(i+1)+'_fp_1') for i in range(self.clockNum)]
+        self.finalInvNormalPath = [
+            Bool("finalInv"+str(i+1)+'_np_1') for i in range(self.clockNum)]
+
+        self.lengthFaultyPath = [Int("length_fp_1")]
+        self.lengthNormalPath = [Int("normal_np_1")]
+
+        self.resetConstraintFaultyPath = [
+            Int("reset" + str(i + 1) + "_fp_1") for i in range(self.clockNum)]
+        self.resetConstraintNormalPath = [
+            Int("reset" + str(i + 1) + "_np_1") for i in range(self.clockNum)]
+
+        self.bound = Int("bound")
+        self.delta = Int("delta")
 
         # we add a transition, that is the nop transition, in position 0 in the transitionList
-        self.transitionList.insert(0, [-1,1,-1,1,0,['c' + str(i+1) + ">=0" for i in range(self.clockNum)],'0'])
-    
+        self.transitionList.insert(
+            0, [-1, 1, -1, 1, 0, ['c' + str(i+1) + ">=0" for i in range(self.clockNum)], '0'])
 
-
-        self.nextTransition = [[self.NOP_TRANSITION] for i in range(len(self.transitionList))] # they can all do nop
+        self.nextTransition = [[self.NOP_TRANSITION] for i in range(
+            len(self.transitionList))]  # they can all do nop
         for i in range(len(self.transitionList)):
             # fix the limit and store the id of the observable transitions.
 
@@ -112,34 +117,36 @@ class Z3Model:
                 if (self.transitionList[i][2] == self.transitionList[j][0]):
                     self.nextTransition[i].append(j)
 
-        nopReset = ""   #norReset used to build nop reset string "c1,c2......" based on clock list
+        nopReset = ""  # norReset used to build nop reset string "c1,c2......" based on clock list
         for i in range(self.clockNum):
             nopReset = nopReset + "c" + str(i+1) + ";"
         nopReset = nopReset[:-1]
 
         # we add a transition to start the two path identically.
         self.maxLabelState += 1
-        self.transitionList.append([self.maxLabelState,1, self.initState,1,2, ['c' + str(i+1) + "=0" for i in range(self.clockNum)],nopReset])
+        self.transitionList.append([self.maxLabelState, 1, self.initState, 1, 2, [
+                                   'c' + str(i+1) + "=0" for i in range(self.clockNum)], nopReset])
         self.nextTransition.append([self.NOP_TRANSITION])
-        self.nextTransition[-1] += [idx for idx in range(len(self.transitionList)) if self.transitionList[idx][0] == self.initState]
+        self.nextTransition[-1] += [idx for idx in range(
+            len(self.transitionList)) if self.transitionList[idx][0] == self.initState]
         # we add the transition is the last one in the transitionList , so the last one nextTransition is idx: idx is transition which begin with initState.
 
-
         # we assign a status for each transition.
-        self.labelTransition = [ Int("statusTransition_" + str(i+1)) for i in range(len(self.transitionList))]
+        self.labelTransition = [Int("statusTransition_" + str(i+1))
+                                for i in range(len(self.transitionList))]
 
         # we assign reset constraint for each transtion
-        self.resetTransition = [ Int("resetTransition_" + str(i+1)) for i in range(len(self.transitionList) * self.clockNum)]
-
+        self.resetTransition = [Int("resetTransition_" + str(i+1))
+                                for i in range(len(self.transitionList) * self.clockNum)]
 
         # we assign a clock constraints in clockTransition list in order.
         for i in range(len(self.transitionList)):
             self.clockTransition.append(self.transitionList[i][5])
 
-        for i in range(len(self.transitionList)):  #max lable of transitions
+        for i in range(len(self.transitionList)):  # max lable of transitions
             if self.transitionList[i][4] > self.maxLabelTransition:
                 self.maxLabelTransition = self.transitionList[i][4]
-   
+
         # the first transition is labelled with 0: it is the NOP transition NOP: event = 0
         #event = 0
         self.s.add(self.labelTransition[0] == 0)
@@ -149,7 +156,8 @@ class Z3Model:
             self.s.add(self.resetTransition[i] == 0)
 
         # The status for a transition can be 0 for a NOP, 1 for fault, 2 for an non observable and at least 3 for an observable event.
-        self.s.add(And([And(x >= 0, x <= self.maxLabelTransition) for x in self.labelTransition]))
+        self.s.add(And([And(x >= 0, x <= self.maxLabelTransition)
+                   for x in self.labelTransition]))
 
         # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
         # the last one in transitionList, which we add.
@@ -158,8 +166,7 @@ class Z3Model:
         self.s.add(self.faultyPath[0] == self.lastlyActiveFaultyPath[0])
         self.s.add(self.normalPath[0] == self.lastlyActiveNormalPath[0])
 
-
-        # all clocks are initialized to 0 in the first transition 
+        # all clocks are initialized to 0 in the first transition
         for i in range(self.clockNum):
             self.s.add(self.clockValueFaultyPath[i] == 0)
             self.s.add(self.clockValueNormalPath[i] == 0)
@@ -172,22 +179,21 @@ class Z3Model:
         self.s.add(self.nopFaultyPath[0] == False)
         self.s.add(self.nopNormalPath[0] == False)
 
-        self.s.add(self.faultOccursByThePast[0] == (self.idTransitionFaultyPath[0] == self.FAULT))
+        self.s.add(self.faultOccursByThePast[0] == (
+            self.idTransitionFaultyPath[0] == self.FAULT))
         self.s.add(self.cptFaultOccursByThePast[0] == 0)
         self.s.add(self.bound >= 0)
         self.s.add(self.delta >= 0)
 
-
-        #delay of first faulty and normal path are initialized to 0. 
+        # delay of first faulty and normal path are initialized to 0.
         self.s.add(self.delayClockFaultyPath[0] == 0)
         self.s.add(self.delayClockNormalPath[0] == 0)
 
-        #the first transition is we added, so we do not count it.
+        # the first transition is we added, so we do not count it.
         self.s.add(self.lengthNormalPath[0] == 0)
         self.s.add(self.lengthFaultyPath[0] == 0)
 
         self.addConstraintOnIdTransition(0)
-
 
     def addConstraintOnIdTransition(self, pos):
         """
@@ -202,43 +208,54 @@ class Z3Model:
         for j in range(len(self.transitionList)):
 
             # assign states, event, guard, invariant, reset of a transition of fautly path and normal path.
-            self.s.add(Implies(self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.labelTransition[j]))
-            self.s.add(Implies(self.faultyPath[pos] == j, self.clockConstraintFaultyPath[pos] == And(self.transConstraints(self.parseConstraints(self.clockTransition[j]),pos,'f'))))
-            self.s.add(Implies(self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.labelTransition[j]))
-            self.s.add(Implies(self.normalPath[pos] == j, self.clockConstraintNormalPath[pos] == And(self.transConstraints(self.parseConstraints(self.clockTransition[j]),pos,'n'))))
-                
-
+            self.s.add(Implies(
+                self.faultyPath[pos] == j, self.idTransitionFaultyPath[pos] == self.labelTransition[j]))
+            self.s.add(Implies(self.faultyPath[pos] == j, self.clockConstraintFaultyPath[pos] == And(
+                self.transConstraints(self.parseConstraints(self.clockTransition[j]), pos, 'f'))))
+            self.s.add(Implies(
+                self.normalPath[pos] == j, self.idTransitionNormalPath[pos] == self.labelTransition[j]))
+            self.s.add(Implies(self.normalPath[pos] == j, self.clockConstraintNormalPath[pos] == And(
+                self.transConstraints(self.parseConstraints(self.clockTransition[j]), pos, 'n'))))
 
             for i in range(self.clockNum):
-                self.s.add(Implies(self.faultyPath[pos] == j, self.resetConstraintFaultyPath[pos * self.clockNum + i] == self.resetTransition[j*self.clockNum + i]))
-                self.s.add(Implies(self.normalPath[pos] == j, self.resetConstraintNormalPath[pos * self.clockNum + i] == self.resetTransition[j*self.clockNum + i]))
+                self.s.add(Implies(self.faultyPath[pos] == j, self.resetConstraintFaultyPath[pos *
+                           self.clockNum + i] == self.resetTransition[j*self.clockNum + i]))
+                self.s.add(Implies(self.normalPath[pos] == j, self.resetConstraintNormalPath[pos *
+                           self.clockNum + i] == self.resetTransition[j*self.clockNum + i]))
 
-                self.s.add(Implies(self.faultyPath[pos] == j, self.sourceInvFaultyPath[pos * self.clockNum + i] == And(self.parseInv(self.transitionList[j][1], i, pos, 'f'))))
-                self.s.add(Implies(self.faultyPath[pos] == j, self.finalInvFaultyPath[pos * self.clockNum + i] == And(self.parseInv(self.transitionList[j][3], i, pos+1, 'f'))))
+                self.s.add(Implies(self.faultyPath[pos] == j, self.sourceInvFaultyPath[pos * self.clockNum + i] == And(
+                    self.parseInv(self.transitionList[j][1], i, pos, 'f'))))
+                self.s.add(Implies(self.faultyPath[pos] == j, self.finalInvFaultyPath[pos * self.clockNum + i] == And(
+                    self.parseInv(self.transitionList[j][3], i, pos+1, 'f'))))
 
-                self.s.add(Implies(self.normalPath[pos] == j, self.sourceInvNormalPath[pos * self.clockNum + i] == And(self.parseInv(self.transitionList[j][1], i, pos, 'n'))))
-                self.s.add(Implies(self.normalPath[pos] == j, self.finalInvNormalPath[pos * self.clockNum + i] == And(self.parseInv(self.transitionList[j][3], i, pos+1, 'n'))))
+                self.s.add(Implies(self.normalPath[pos] == j, self.sourceInvNormalPath[pos * self.clockNum + i] == And(
+                    self.parseInv(self.transitionList[j][1], i, pos, 'n'))))
+                self.s.add(Implies(self.normalPath[pos] == j, self.finalInvNormalPath[pos * self.clockNum + i] == And(
+                    self.parseInv(self.transitionList[j][3], i, pos+1, 'n'))))
 
-                
         self.s.add(self.clockConstraintFaultyPath[pos] == True)
         self.s.add(self.clockConstraintNormalPath[pos] == True)
 
         # clocks progress
         for j in range(self.clockNum):
 
-            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == 1, self.clockValueFaultyPath[(pos+1) * self.clockNum + j ] == 0 + self.delayClockFaultyPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == 1, self.clockValueFaultyPath[(
+                pos+1) * self.clockNum + j] == 0 + self.delayClockFaultyPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == 0, self.clockValueFaultyPath[(pos+1) * self.clockNum + j ] == self.clockValueFaultyPath[pos * self.clockNum + j] +self.delayClockFaultyPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == 0, self.clockValueFaultyPath[(
+                pos+1) * self.clockNum + j] == self.clockValueFaultyPath[pos * self.clockNum + j] + self.delayClockFaultyPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == 1, self.clockValueNormalPath[(pos+1) * self.clockNum + j ] == 0 + self.delayClockNormalPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == 1, self.clockValueNormalPath[(
+                pos+1) * self.clockNum + j] == 0 + self.delayClockNormalPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == 0, self.clockValueNormalPath[(pos+1) * self.clockNum + j ] == self.clockValueNormalPath[pos * self.clockNum + j] +self.delayClockNormalPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == 0, self.clockValueNormalPath[(
+                pos+1) * self.clockNum + j] == self.clockValueNormalPath[pos * self.clockNum + j] + self.delayClockNormalPath[pos+1]))
 
-            self.s.add(And(self.sourceInvFaultyPath[pos * self.clockNum + j] == True, self.finalInvFaultyPath[pos * self.clockNum + j] == True))
+            self.s.add(And(self.sourceInvFaultyPath[pos * self.clockNum + j] ==
+                       True, self.finalInvFaultyPath[pos * self.clockNum + j] == True))
 
-            self.s.add(And(self.sourceInvNormalPath[pos * self.clockNum + j] == True, self.finalInvNormalPath[pos * self.clockNum + j] == True))
-
-
+            self.s.add(And(self.sourceInvNormalPath[pos * self.clockNum + j] ==
+                       True, self.finalInvNormalPath[pos * self.clockNum + j] == True))
 
         self.s.add(self.delayClockFaultyPath[pos] >= 0)
         self.s.add(self.delayClockNormalPath[pos] >= 0)
@@ -246,24 +263,29 @@ class Z3Model:
         self.s.add(self.delayClockNormalPath[pos+1] >= 0)
         self.s.add(self.delayClockFaultyPath[pos+1] >= 0)
 
-
         # globle clock progress
-        self.s.add(self.globleClockFaultyPath[pos] == self.globleClockFaultyPath[pos-1] + self.delayClockFaultyPath[pos])
-        self.s.add(self.globleClockNormalPath[pos] == self.globleClockNormalPath[pos-1] + self.delayClockNormalPath[pos])
+        self.s.add(
+            self.globleClockFaultyPath[pos] == self.globleClockFaultyPath[pos-1] + self.delayClockFaultyPath[pos])
+        self.s.add(
+            self.globleClockNormalPath[pos] == self.globleClockNormalPath[pos-1] + self.delayClockNormalPath[pos])
 
-        # delay of nop is 0        
-        self.s.add(Implies(self.faultyPath[pos] == 0, self.delayClockFaultyPath[pos] == 0))
-        self.s.add(Implies(self.normalPath[pos] == 0, self.delayClockNormalPath[pos] == 0))
+        # delay of nop is 0
+        self.s.add(
+            Implies(self.faultyPath[pos] == 0, self.delayClockFaultyPath[pos] == 0))
+        self.s.add(
+            Implies(self.normalPath[pos] == 0, self.delayClockNormalPath[pos] == 0))
 
-        if pos>=1:
-            self.s.add(If(self.faultyPath[pos] == 0, self.lengthFaultyPath[pos] == self.lengthFaultyPath[pos] == self.lengthFaultyPath[pos-1], self.lengthFaultyPath[pos] == self.lengthFaultyPath[pos-1] + 1))
-            self.s.add(If(self.normalPath[pos] == 0, self.lengthNormalPath[pos] == self.lengthNormalPath[pos] == self.lengthNormalPath[pos-1], self.lengthNormalPath[pos] == self.lengthNormalPath[pos-1] + 1))
-
+        if pos >= 1:
+            self.s.add(If(self.faultyPath[pos] == 0, self.lengthFaultyPath[pos] == self.lengthFaultyPath[pos]
+                       == self.lengthFaultyPath[pos-1], self.lengthFaultyPath[pos] == self.lengthFaultyPath[pos-1] + 1))
+            self.s.add(If(self.normalPath[pos] == 0, self.lengthNormalPath[pos] == self.lengthNormalPath[pos]
+                       == self.lengthNormalPath[pos-1], self.lengthNormalPath[pos] == self.lengthNormalPath[pos-1] + 1))
 
         # synchronize
-        self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS, self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
-        self.s.add(Or(Not(self.checkSynchro[pos]), And(self.idTransitionFaultyPath[pos] == self.idTransitionNormalPath[pos],self.globleClockFaultyPath[pos] == self.globleClockNormalPath[pos])))
-
+        self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS,
+                   self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
+        self.s.add(Or(Not(self.checkSynchro[pos]), And(self.idTransitionFaultyPath[pos] ==
+                   self.idTransitionNormalPath[pos], self.globleClockFaultyPath[pos] == self.globleClockNormalPath[pos])))
 
     def incVariableList(self):
         """
@@ -288,29 +310,36 @@ class Z3Model:
         self.delayClockFaultyPath.append(Real("delay_fp_" + str(idx+1)))
         self.delayClockNormalPath.append(Real("delay_np_" + str(idx+1)))
 
+        self.clockConstraintFaultyPath.append(
+            Bool("constraint_fp_" + str(idx)))
+        self.clockConstraintNormalPath.append(
+            Bool("constraint_np_" + str(idx)))
 
-        self.clockConstraintFaultyPath.append(Bool("constraint_fp_" + str(idx)))
-        self.clockConstraintNormalPath.append(Bool("constraint_np_" + str(idx)))
-
-        self.cptFaultOccursByThePast.append(Real("cptFaultOccurs_" + str(idx+1)))
+        self.cptFaultOccursByThePast.append(
+            Real("cptFaultOccurs_" + str(idx+1)))
 
         self.lengthFaultyPath.append(Int("length_fp_" + str(idx)))
         self.lengthNormalPath.append(Int("length_np_" + str(idx)))
 
-
-
         for i in range(self.clockNum):  # reset need next clock value
-            self.clockValueFaultyPath.append(Real("clock" + str(i + 1) + "_fp_" + str(idx+1)))
-            self.clockValueNormalPath.append(Real("clock" + str(i + 1) + "_np_" + str(idx+1)))
+            self.clockValueFaultyPath.append(
+                Real("clock" + str(i + 1) + "_fp_" + str(idx+1)))
+            self.clockValueNormalPath.append(
+                Real("clock" + str(i + 1) + "_np_" + str(idx+1)))
 
-            self.resetConstraintFaultyPath.append(Int("reset" + str(i + 1) + "_fp_" + str(idx)))
-            self.resetConstraintNormalPath.append(Int("reset" + str(i + 1) + "_np_" + str(idx)))
+            self.resetConstraintFaultyPath.append(
+                Int("reset" + str(i + 1) + "_fp_" + str(idx)))
+            self.resetConstraintNormalPath.append(
+                Int("reset" + str(i + 1) + "_np_" + str(idx)))
 
-            self.sourceInvFaultyPath.append(Bool("sourceInv" + str(i + 1) + "_fp_" + str(idx)))
-            self.finalInvFaultyPath.append(Bool("finalInv" + str(i + 1) + "_fp_" + str(idx)))
-            self.sourceInvNormalPath.append(Bool("sourceInv" + str(i + 1) + "_np_" + str(idx)))
-            self.finalInvNormalPath.append(Bool("finalInv" + str(i + 1) + "_np_" + str(idx)))
-            
+            self.sourceInvFaultyPath.append(
+                Bool("sourceInv" + str(i + 1) + "_fp_" + str(idx)))
+            self.finalInvFaultyPath.append(
+                Bool("finalInv" + str(i + 1) + "_fp_" + str(idx)))
+            self.sourceInvNormalPath.append(
+                Bool("sourceInv" + str(i + 1) + "_np_" + str(idx)))
+            self.finalInvNormalPath.append(
+                Bool("finalInv" + str(i + 1) + "_np_" + str(idx)))
 
     def incBound(self):
         """
@@ -329,15 +358,21 @@ class Z3Model:
         self.s.add(self.idTransitionNormalPath[idx] <= self.maxLabelTransition)
 
         # set the lastly active transition.
-        self.s.add(Implies(self.faultyPath[idx] == self.NOP_TRANSITION, self.lastlyActiveFaultyPath[idx] == self.lastlyActiveFaultyPath[idx-1]))
-        self.s.add(Implies(self.faultyPath[idx] != self.NOP_TRANSITION, self.lastlyActiveFaultyPath[idx] == self.faultyPath[idx]))
-        self.s.add(Implies(self.normalPath[idx] == self.NOP_TRANSITION, self.lastlyActiveNormalPath[idx] == self.lastlyActiveNormalPath[idx-1]))
-        self.s.add(Implies(self.normalPath[idx] != self.NOP_TRANSITION, self.lastlyActiveNormalPath[idx] == self.normalPath[idx]))
+        self.s.add(Implies(self.faultyPath[idx] == self.NOP_TRANSITION,
+                   self.lastlyActiveFaultyPath[idx] == self.lastlyActiveFaultyPath[idx-1]))
+        self.s.add(Implies(self.faultyPath[idx] != self.NOP_TRANSITION,
+                   self.lastlyActiveFaultyPath[idx] == self.faultyPath[idx]))
+        self.s.add(Implies(self.normalPath[idx] == self.NOP_TRANSITION,
+                   self.lastlyActiveNormalPath[idx] == self.lastlyActiveNormalPath[idx-1]))
+        self.s.add(Implies(self.normalPath[idx] != self.NOP_TRANSITION,
+                   self.lastlyActiveNormalPath[idx] == self.normalPath[idx]))
 
         # verify that transitions are correct regarding the label.
         for j in range(len(self.transitionList)):
-            self.s.add(Implies(self.lastlyActiveFaultyPath[idx-1] == j, Or([self.faultyPath[idx] == n for n in self.nextTransition[j]])))
-            self.s.add(Implies(self.lastlyActiveNormalPath[idx-1] == j, Or([self.normalPath[idx] == n for n in self.nextTransition[j]])))
+            self.s.add(Implies(self.lastlyActiveFaultyPath[idx-1] == j, Or(
+                [self.faultyPath[idx] == n for n in self.nextTransition[j]])))
+            self.s.add(Implies(self.lastlyActiveNormalPath[idx-1] == j, Or(
+                [self.normalPath[idx] == n for n in self.nextTransition[j]])))
 
         # no fault in the normal path.
         self.s.add(self.idTransitionNormalPath[idx] != self.FAULT)
@@ -350,33 +385,39 @@ class Z3Model:
         self.addConstraintOnIdTransition(idx)
 
         # specify if the transition is a nop
-        self.s.add(self.nopFaultyPath[idx] == (self.faultyPath[idx] == self.NOP_TRANSITION))
-        self.s.add(self.nopNormalPath[idx] == (self.normalPath[idx] == self.NOP_TRANSITION))
+        self.s.add(self.nopFaultyPath[idx] == (
+            self.faultyPath[idx] == self.NOP_TRANSITION))
+        self.s.add(self.nopNormalPath[idx] == (
+            self.normalPath[idx] == self.NOP_TRANSITION))
 
         # we want to progress
-        self.s.add(Or(Not(self.nopFaultyPath[idx]), Not(self.nopNormalPath[idx])))
+        self.s.add(
+            Or(Not(self.nopFaultyPath[idx]), Not(self.nopNormalPath[idx])))
 
         # breaking symmetries in the nop schema
-        self.s.add(Implies(self.nopFaultyPath[idx-1], Or(self.nopFaultyPath[idx], self.idTransitionFaultyPath[idx] > self.NO_OBS)))
-        self.s.add(Implies(self.nopNormalPath[idx-1], Or(self.nopNormalPath[idx], self.idTransitionNormalPath[idx] > self.NO_OBS)))
+        self.s.add(Implies(self.nopFaultyPath[idx-1], Or(
+            self.nopFaultyPath[idx], self.idTransitionFaultyPath[idx] > self.NO_OBS)))
+        self.s.add(Implies(self.nopNormalPath[idx-1], Or(
+            self.nopNormalPath[idx], self.idTransitionNormalPath[idx] > self.NO_OBS)))
 
         # the dynamic of the fault list of variables
-        self.s.add(Or(self.faultOccursByThePast[idx-1], self.idTransitionFaultyPath[idx] == self.FAULT) == self.faultOccursByThePast[idx])
+        self.s.add(Or(self.faultOccursByThePast[idx-1], self.idTransitionFaultyPath[idx]
+                   == self.FAULT) == self.faultOccursByThePast[idx])
 
         # set the counter since when the fault occurs.
-        self.s.add(Implies(self.faultOccursByThePast[idx-1] == False, self.cptFaultOccursByThePast[idx] == 0 ))
+        self.s.add(Implies(
+            self.faultOccursByThePast[idx-1] == False, self.cptFaultOccursByThePast[idx] == 0))
 
         # count delta.
-        self.s.add(Implies(self.faultOccursByThePast[idx] == False, self.cptFaultOccursByThePast[idx+1] == 0 ))
-        self.s.add(Implies(self.faultOccursByThePast[idx] == True, self.cptFaultOccursByThePast[idx+1] == self.cptFaultOccursByThePast[idx] + self.delayClockFaultyPath[idx+1]))
+        self.s.add(Implies(
+            self.faultOccursByThePast[idx] == False, self.cptFaultOccursByThePast[idx+1] == 0))
+        self.s.add(Implies(self.faultOccursByThePast[idx] == True, self.cptFaultOccursByThePast[idx+1]
+                   == self.cptFaultOccursByThePast[idx] + self.delayClockFaultyPath[idx+1]))
 
-        
         #self.s.add(Implies(And(self.faultOccursByThePast[idx-2] == False, self.faultOccursByThePast[idx-1] == True), self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1] + self.delayClockFaultyPath[idx] + self.delayClockFaultyPath[idx + 1]))
         #self.s.add(Implies(And(self.faultOccursByThePast[idx-2] == True, self.faultOccursByThePast[idx-1] == True), self.cptFaultOccursByThePast[idx] == self.cptFaultOccursByThePast[idx-1]  + self.delayClockFaultyPath[idx + 1]))
 
-
     def printAutomatonInfo(self):
-
         """
         Print information about the given automaton
         """
@@ -396,13 +437,11 @@ class Z3Model:
         print("DELTA:", self.DELTA)
         print("delta:", self.delta)
 
-
     def printZ3Constraints(self):
         """
         Print the constraint store in the solver following the z3 format.
         """
         print(self.s)
-
 
     def checkModel(self, model):
         """
@@ -422,14 +461,16 @@ class Z3Model:
         for i in range(len(self.faultyPath)):
             v = int(model.evaluate(self.faultyPath[i]).as_long())
             if i > 0:
-                lv = int(model.evaluate(self.lastlyActiveFaultyPath[i-1]).as_long())
+                lv = int(model.evaluate(
+                    self.lastlyActiveFaultyPath[i-1]).as_long())
             id = int(model.evaluate(self.idTransitionFaultyPath[i]).as_long())
             nop = model.evaluate(self.nopFaultyPath[i])
             assert(id == 0 or self.transitionList[v][2] == id)
 
             assert(nop or v != 0)
             if previous != None:
-                assert(nop or self.transitionList[previous][1] == self.transitionList[v][0])
+                assert(
+                    nop or self.transitionList[previous][1] == self.transitionList[v][0])
                 print(lv, previous)
                 assert(lv == previous)
 
@@ -440,19 +481,20 @@ class Z3Model:
         for i in range(len(self.normalPath)):
             v = int(model.evaluate(self.normalPath[i]).as_long())
             if i > 0:
-                lv = int(model.evaluate(self.lastlyActiveNormalPath[i-1]).as_long())
+                lv = int(model.evaluate(
+                    self.lastlyActiveNormalPath[i-1]).as_long())
             id = int(model.evaluate(self.idTransitionNormalPath[i]).as_long())
             nop = model.evaluate(self.nopNormalPath[i])
             assert(id == 0 or self.transitionList[v][2] == id)
 
             assert(nop or v != 0)
             if previous != None:
-                assert(nop or self.transitionList[previous][1] == self.transitionList[v][0])
+                assert(
+                    nop or self.transitionList[previous][1] == self.transitionList[v][0])
                 assert(lv == previous)
 
             if not nop:
                 previous = v
-
 
     def printOneIntArray(self, model, array):
         """
@@ -464,10 +506,8 @@ class Z3Model:
         :type model: list of integer z3 variables.
         """
         for x in array:
-            print('{:-6}'.format(int(model.evaluate(x).as_long())),end=" ")
+            print('{:-6}'.format(int(model.evaluate(x).as_long())), end=" ")
         print()
-
-
 
     def printOneRealArray(self, model, array, cpt):
         """
@@ -481,7 +521,6 @@ class Z3Model:
         """
         print([model[array[i]] for i in range(cpt)])
 
-            
     def printOneBoolArray(self, model, array):
         """
         Print a list of z3 variables.
@@ -496,9 +535,8 @@ class Z3Model:
             id = 0
             if r:
                 id = 1
-            print('{:-6}'.format(id),end=" ")
+            print('{:-6}'.format(id), end=" ")
         print()
-
 
     def printModel(self, model, cpt):
         """
@@ -539,14 +577,14 @@ class Z3Model:
         self.printOneRealArray(model, self.globleClockFaultyPath, cpt)
         print("globleClockNormalPath")
         self.printOneRealArray(model, self.globleClockNormalPath, cpt)
-        
+
         print("delta")
         self.printOneRealArray(model, self.cptFaultOccursByThePast, cpt+1)
         print("delayNP")
         self.printOneRealArray(model, self.delayClockNormalPath, cpt+1)
         print("delayFP")
         self.printOneRealArray(model, self.delayClockFaultyPath, cpt+1)
-        
+
         print()
 
     def parseConstraints(self, constraint_original):
@@ -627,26 +665,34 @@ class Z3Model:
                     if flag == 1:
                         # item = > int(nummber)
                         # item = locals()["clock" + clockindex + variableNameAfterfix] > int(nummber)
-                        item = self.clockValueFaultyPath[idx * self.clockNum + j] > float(nummber)
+                        item = self.clockValueFaultyPath[idx *
+                                                         self.clockNum + j] > float(nummber)
                         # item = c1 > int(nummber)
                     if flag == 2:
-                        item = self.clockValueFaultyPath[idx * self.clockNum + j] >= float(nummber)
+                        item = self.clockValueFaultyPath[idx *
+                                                         self.clockNum + j] >= float(nummber)
                     if flag == 3:
-                        item = self.clockValueFaultyPath[idx * self.clockNum + j] < float(nummber)
+                        item = self.clockValueFaultyPath[idx *
+                                                         self.clockNum + j] < float(nummber)
                     if flag == 4:
-                        item = self.clockValueFaultyPath[idx * self.clockNum + j] <= float(nummber)
+                        item = self.clockValueFaultyPath[idx *
+                                                         self.clockNum + j] <= float(nummber)
                 elif clock == clocklist[j] and property == "n":
                     if flag == 1:
                         # item = > int(nummber)
                         # item = locals()["clock" + clockindex + variableNameAfterfix] > int(nummber)
-                        item = self.clockValueNormalPath[idx * self.clockNum + j] > float(nummber)
+                        item = self.clockValueNormalPath[idx *
+                                                         self.clockNum + j] > float(nummber)
                         # item = c1 > int(nummber)
                     if flag == 2:
-                        item = self.clockValueNormalPath[idx * self.clockNum + j] >= float(nummber)
+                        item = self.clockValueNormalPath[idx *
+                                                         self.clockNum + j] >= float(nummber)
                     if flag == 3:
-                        item = self.clockValueNormalPath[idx * self.clockNum + j] < float(nummber)
+                        item = self.clockValueNormalPath[idx *
+                                                         self.clockNum + j] < float(nummber)
                     if flag == 4:
-                        item = self.clockValueNormalPath[idx * self.clockNum + j] <= float(nummber)
+                        item = self.clockValueNormalPath[idx *
+                                                         self.clockNum + j] <= float(nummber)
                 continue
 
             ex.append(item)
@@ -698,12 +744,13 @@ class Z3Model:
                 if clockindex == str(clock+1):
                     number = int(i.split('>')[0])
                     if property == 'f':
-                        result = self.clockValueFaultyPath[pos*self.clockNum+clock] <= number
+                        result = self.clockValueFaultyPath[pos *
+                                                           self.clockNum+clock] <= number
                     elif property == 'n':
-                        result = self.clockValueNormalPath[pos*self.clockNum+clock] <= number
+                        result = self.clockValueNormalPath[pos *
+                                                           self.clockNum+clock] <= number
                     break
         return result
-        
 
     def run(self):
         """
@@ -714,20 +761,17 @@ class Z3Model:
         assumD = Bool("d" + str(self.idxAssum))
         self.s.add(Implies(assumD, self.delta == self.DELTA))
 
-
-
         for i in range(len(self.transitionList)):
             self.s.add(self.labelTransition[i] == self.transitionList[i][4])
 
             for j in range(self.clockNum):
-                self.s.add(self.resetTransition[i*self.clockNum+j] == self.transReset(self.transitionList[i][6])[j])
+                self.s.add(self.resetTransition[i*self.clockNum+j]
+                           == self.transReset(self.transitionList[i][6])[j])
 
         cpt = 1
 
-
-
         while cpt <= self.BOUND:
-        #while cpt < (2 * self.BOUND)
+            # while cpt < (2 * self.BOUND)
 
             cpt += 1
             self.incBound()
@@ -735,14 +779,13 @@ class Z3Model:
             # assumption:
             self.idxAssum += 1
             assumB = Bool("b" + str(self.idxAssum))    # fix the bound
-            assumF = Bool("f" + str(self.idxAssum))    # ensure that we have enough real transition at the end
-
+            # ensure that we have enough real transition at the end
+            assumF = Bool("f" + str(self.idxAssum))
 
             self.s.add(Implies(assumB, self.bound == len(self.faultyPath)))
 
-
-
-            self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1] == self.DELTA))
+            self.s.add(
+                Implies(assumF, self.cptFaultOccursByThePast[-1] == self.DELTA))
             #self.s.add(Implies(assumF, self.cptFaultOccursByThePast[-1]> self.delta))
 
             assumFO = Bool("fo" + str(self.idxAssum))
@@ -752,21 +795,18 @@ class Z3Model:
             #self.s.add(self.lengthFaultyPath[-1] <= self.BOUND)
             #self.s.add(self.lengthNormalPath[-1] <= self.BOUND)
 
-
-
-            res = self.s.check(assumD, assumB,assumF,assumFO)
+            res = self.s.check(assumD, assumB, assumF, assumFO)
 
             if res == sat:
                 print("sat")
-                #print(self.s.model())
+                # print(self.s.model())
                 m = self.s.model()
-                #self.checkModel(m)
+                # self.checkModel(m)
                 self.printModel(m, cpt)
 
-                #print(self.s.model()[self.cptFaultOccursByThePast[3]])
+                # print(self.s.model()[self.cptFaultOccursByThePast[3]])
 
-
-                #print(self.s.model())
+                # print(self.s.model())
                 return
             else:
                 print("Increase the bound:", len(self.faultyPath) + 1)
@@ -785,5 +825,3 @@ start = time.time()
 z3Model.run()
 end = time.time()
 print(str(end-start))
-
-

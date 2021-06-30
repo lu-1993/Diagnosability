@@ -70,9 +70,9 @@ class Parser:
             invariantsList[state] = inv
 
         for transition in transitionList:
-            state = int(i[0])
+            state = int(transition[0])
             transition.insert(1, invariantsList[state])
-            state = int(i[2])
+            state = int(transition[2])
             transition.insert(3, invariantsList[state])
 
         file.close()
