@@ -77,13 +77,13 @@ class Z3Model:
             [Real("clock"+str(i+1)+"_np_1"), Real("clock"+str(i+1)+"_np_2")] for i in range(self.clockNum)]
 
         self.sourceInvFaultyPath = [
-            [Bool("sourceInv"+str(i+1)+'_fp_1')] for i in range(self.clockNum)]
+            Bool("sourceInv"+str(i+1)+'_fp_1') for i in range(self.clockNum)]
         self.sourceInvNormalPath = [
-            [Bool("sourceInv"+str(i+1)+'_np_1')] for i in range(self.clockNum)]
+            Bool("sourceInv"+str(i+1)+'_np_1') for i in range(self.clockNum)]
         self.finalInvFaultyPath = [
-            [Bool("finalInv"+str(i+1)+'_fp_1')] for i in range(self.clockNum)]
+            Bool("finalInv"+str(i+1)+'_fp_1') for i in range(self.clockNum)]
         self.finalInvNormalPath = [
-            [Bool("finalInv"+str(i+1)+'_np_1')] for i in range(self.clockNum)]
+            Bool("finalInv"+str(i+1)+'_np_1') for i in range(self.clockNum)]
 
         self.lengthFaultyPath = [Int("length_fp_1")]
         self.lengthNormalPath = [Int("normal_np_1")]
@@ -217,14 +217,14 @@ class Z3Model:
                 self.s.add(Implies(self.faultyPath[pos] == j, self.resetConstraintFaultyPath[i][pos] == self.resetTransition[i][j]))
                 self.s.add(Implies(self.normalPath[pos] == j, self.resetConstraintNormalPath[i][pos] == self.resetTransition[i][j]))
 
-                self.s.add(Implies(self.faultyPath[pos] == j, self.sourceInvFaultyPath[i][pos] == And(
+                self.s.add(Implies(self.faultyPath[pos] == j, self.sourceInvFaultyPath[pos * self.clockNum + i] == And(
                     self.parseInv(self.transitionList[j][1], i, pos, 'f'))))
-                self.s.add(Implies(self.faultyPath[pos] == j, self.finalInvFaultyPath[i][pos] == And(
+                self.s.add(Implies(self.faultyPath[pos] == j, self.finalInvFaultyPath[pos * self.clockNum + i] == And(
                     self.parseInv(self.transitionList[j][3], i, pos+1, 'f'))))
 
-                self.s.add(Implies(self.normalPath[pos] == j, self.sourceInvNormalPath[i][pos] == And(
+                self.s.add(Implies(self.normalPath[pos] == j, self.sourceInvNormalPath[pos * self.clockNum + i] == And(
                     self.parseInv(self.transitionList[j][1], i, pos, 'n'))))
-                self.s.add(Implies(self.normalPath[pos] == j, self.finalInvNormalPath[i][pos] == And(
+                self.s.add(Implies(self.normalPath[pos] == j, self.finalInvNormalPath[pos * self.clockNum + i] == And(
                     self.parseInv(self.transitionList[j][3], i, pos+1, 'n'))))
 
         self.s.add(self.clockConstraintFaultyPath[pos] == True)
@@ -244,11 +244,11 @@ class Z3Model:
             self.s.add(Implies(self.resetConstraintNormalPath[j][pos] == False, self.clockValueNormalPath[j]
                        [pos + 1] == self.clockValueNormalPath[j][pos] + self.delayClockNormalPath[pos+1]))
 
-            self.s.add(And(self.sourceInvFaultyPath[j][pos] ==
-                       True, self.finalInvFaultyPath[j][pos] == True))
+            self.s.add(And(self.sourceInvFaultyPath[pos * self.clockNum + j] ==
+                       True, self.finalInvFaultyPath[pos * self.clockNum + j] == True))
 
-            self.s.add(And(self.sourceInvNormalPath[j][pos] ==
-                       True, self.finalInvNormalPath[j][pos] == True))
+            self.s.add(And(self.sourceInvNormalPath[pos * self.clockNum + j] ==
+                       True, self.finalInvNormalPath[pos * self.clockNum + j] == True))
 
         self.s.add(self.delayClockFaultyPath[pos] >= 0)
         self.s.add(self.delayClockNormalPath[pos] >= 0)
@@ -325,14 +325,14 @@ class Z3Model:
             self.resetConstraintNormalPath[i].append(
                 Int("reset" + str(i + 1) + "_np_" + str(idx)))
 
-            self.sourceInvFaultyPath[i].append(
+            self.sourceInvFaultyPath.append(
                 Bool("sourceInv" + str(i + 1) + "_fp_" + str(idx)))
-            self.finalInvFaultyPath[i].append(
+            self.finalInvFaultyPath.append(
                 Bool("finalInv" + str(i + 1) + "_fp_" + str(idx)))
 
-            self.sourceInvNormalPath[i].append(
+            self.sourceInvNormalPath.append(
                 Bool("sourceInv" + str(i + 1) + "_np_" + str(idx)))
-            self.finalInvNormalPath[i].append(
+            self.finalInvNormalPath.append(
                 Bool("finalInv" + str(i + 1) + "_np_" + str(idx)))
 
     def incBound(self):
