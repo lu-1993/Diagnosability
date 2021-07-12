@@ -65,16 +65,12 @@ class Z3Model:
         self.clockConstraintFaultyPath = [Bool("constraint_fp_1")]
         self.clockConstraintNormalPath = [Bool("constraint_np_1")]
 
+        # clockConstraint[clock_number][transition_number]
         self.clockValueFaultyPath = [
-            Real("clock"+str(i+1)+"_fp_1") for i in range(self.clockNum)]
-        self.clockValueNormalPath = [
-            Real("clock"+str(i+1)+"_np_1") for i in range(self.clockNum)]
+            [Real("clock"+str(i+1)+"_fp_1"), Real("clock"+str(i+1)+"_fp_2")] for i in range(self.clockNum)]
 
-        for i in range(self.clockNum):  # reset need next clock value
-            self.clockValueFaultyPath.append(
-                Real("clock" + str(i+1) + "_fp_2"))
-            self.clockValueNormalPath.append(
-                Real("clock" + str(i+1) + "_np_2"))
+        self.clockValueNormalPath = [
+            [Real("clock"+str(i+1)+"_np_1"), Real("clock"+str(i+1)+"_np_2")] for i in range(self.clockNum)]
 
         self.sourceInvFaultyPath = [
             Bool("sourceInv"+str(i+1)+'_fp_1') for i in range(self.clockNum)]
@@ -164,8 +160,8 @@ class Z3Model:
 
         # all clocks are initialized to 0 in the first transition
         for i in range(self.clockNum):
-            self.s.add(self.clockValueFaultyPath[i] == 0)
-            self.s.add(self.clockValueNormalPath[i] == 0)
+            self.s.add(self.clockValueFaultyPath[i][0] == 0)
+            self.s.add(self.clockValueNormalPath[i][0] == 0)
 
         # global clock is initialized to 0 in the first transition
         self.s.add(self.globalClockFaultyPath[0] == 0)
@@ -234,17 +230,17 @@ class Z3Model:
 
         # clocks progress
         for j in range(self.clockNum):
-            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == True, self.clockValueFaultyPath[(
-                pos+1) * self.clockNum + j] == 0 + self.delayClockFaultyPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == True,
+                       self.clockValueFaultyPath[j][pos + 1] == 0 + self.delayClockFaultyPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == False, self.clockValueFaultyPath[(
-                pos+1) * self.clockNum + j] == self.clockValueFaultyPath[pos * self.clockNum + j] + self.delayClockFaultyPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintFaultyPath[pos * self.clockNum + j] == False, self.clockValueFaultyPath[j]
+                       [pos + 1] == self.clockValueFaultyPath[j][pos] + self.delayClockFaultyPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == True, self.clockValueNormalPath[(
-                pos+1) * self.clockNum + j] == 0 + self.delayClockNormalPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == True,
+                       self.clockValueNormalPath[j][pos+1] == 0 + self.delayClockNormalPath[pos+1]))
 
-            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == False, self.clockValueNormalPath[(
-                pos+1) * self.clockNum + j] == self.clockValueNormalPath[pos * self.clockNum + j] + self.delayClockNormalPath[pos+1]))
+            self.s.add(Implies(self.resetConstraintNormalPath[pos * self.clockNum + j] == False, self.clockValueNormalPath[j]
+                       [pos + 1] == self.clockValueNormalPath[j][pos] + self.delayClockNormalPath[pos+1]))
 
             self.s.add(And(self.sourceInvFaultyPath[pos * self.clockNum + j] ==
                        True, self.finalInvFaultyPath[pos * self.clockNum + j] == True))
@@ -317,9 +313,9 @@ class Z3Model:
         self.lengthNormalPath.append(Int("length_np_" + str(idx)))
 
         for i in range(self.clockNum):  # reset need next clock value
-            self.clockValueFaultyPath.append(
+            self.clockValueFaultyPath[i].append(
                 Real("clock" + str(i + 1) + "_fp_" + str(idx+1)))
-            self.clockValueNormalPath.append(
+            self.clockValueNormalPath[i].append(
                 Real("clock" + str(i + 1) + "_np_" + str(idx+1)))
 
             self.resetConstraintFaultyPath.append(
@@ -639,11 +635,11 @@ class Z3Model:
                 if len(num) == 1:
                     flag = 1
                     nummber = num[0].split(">")[1]
-                    clock = num[0].split(">")[0]
                 else:
                     flag = 2
                     nummber = num[1]
-                    clock = num[0].split(">")[0]
+
+                clock = num[0].split(">")[0]
             else:
                 if len(num) == 1:
                     flag = 3
@@ -654,40 +650,27 @@ class Z3Model:
                     nummber = num[0].split(">")[0]
 
                     clock = num[1]
+            nummber = float(nummber)
 
             for j in range(len(clocklist)):
                 if clock == clocklist[j] and property == "f":
                     if flag == 1:
-                        # item = > int(nummber)
-                        # item = locals()["clock" + clockindex + variableNameAfterfix] > int(nummber)
-                        item = self.clockValueFaultyPath[idx *
-                                                         self.clockNum + j] > float(nummber)
-                        # item = c1 > int(nummber)
+                        item = self.clockValueFaultyPath[j][idx] > nummber
                     if flag == 2:
-                        item = self.clockValueFaultyPath[idx *
-                                                         self.clockNum + j] >= float(nummber)
+                        item = self.clockValueFaultyPath[j][idx] >= nummber
                     if flag == 3:
-                        item = self.clockValueFaultyPath[idx *
-                                                         self.clockNum + j] < float(nummber)
+                        item = self.clockValueFaultyPath[j][idx] < nummber
                     if flag == 4:
-                        item = self.clockValueFaultyPath[idx *
-                                                         self.clockNum + j] <= float(nummber)
+                        item = self.clockValueFaultyPath[j][idx] <= nummber
                 elif clock == clocklist[j] and property == "n":
                     if flag == 1:
-                        # item = > int(nummber)
-                        # item = locals()["clock" + clockindex + variableNameAfterfix] > int(nummber)
-                        item = self.clockValueNormalPath[idx *
-                                                         self.clockNum + j] > float(nummber)
-                        # item = c1 > int(nummber)
+                        item = self.clockValueNormalPath[j][idx] > nummber
                     if flag == 2:
-                        item = self.clockValueNormalPath[idx *
-                                                         self.clockNum + j] >= float(nummber)
+                        item = self.clockValueNormalPath[j][idx] >= nummber
                     if flag == 3:
-                        item = self.clockValueNormalPath[idx *
-                                                         self.clockNum + j] < float(nummber)
+                        item = self.clockValueNormalPath[j][idx] < nummber
                     if flag == 4:
-                        item = self.clockValueNormalPath[idx *
-                                                         self.clockNum + j] <= float(nummber)
+                        item = self.clockValueNormalPath[j][idx] <= nummber
                 continue
 
             ex.append(item)
@@ -739,11 +722,9 @@ class Z3Model:
                 if clockindex == str(clock+1):
                     number = int(i.split('>')[0])
                     if property == 'f':
-                        result = self.clockValueFaultyPath[pos *
-                                                           self.clockNum+clock] <= number
+                        result = self.clockValueFaultyPath[clock][pos] <= number
                     elif property == 'n':
-                        result = self.clockValueNormalPath[pos *
-                                                           self.clockNum+clock] <= number
+                        result = self.clockValueNormalPath[clock][pos] <= number
                     break
         return result
 
