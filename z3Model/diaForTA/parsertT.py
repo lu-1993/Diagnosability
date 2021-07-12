@@ -9,8 +9,7 @@ class Parser:
         pass
 
     def parse(self, nameFile: str):
-        t1 = Transition(1, 1, 1, 1, 1)
-        print(t1)
+        automaton = []
 
         file = open(nameFile, "r")
         context = file.readlines()  # contest store all txt transitions and parameters
@@ -75,10 +74,12 @@ class Parser:
             transition.append(finalState)
             transition.append(event)
 
-            print(guard)
-
+            # print(guard)
             transition.append(guard)
             transition.append(resetList)
+
+            automaton.append(Transition(
+                sourceState, finalState, event, guard, resetList))
 
             transitionList.append(transition)
 
@@ -103,6 +104,9 @@ class Parser:
             transition.insert(1, invariantsList[state])
             state = int(transition[2])
             transition.insert(3, invariantsList[state])
+
+        for t in automaton:
+            print(t)
 
         file.close()
         return initState, transitionList, bound, delta, len(clockList)
