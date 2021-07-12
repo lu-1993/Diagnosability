@@ -327,6 +327,7 @@ class Z3Model:
                 Bool("sourceInv" + str(i + 1) + "_fp_" + str(idx)))
             self.finalInvFaultyPath.append(
                 Bool("finalInv" + str(i + 1) + "_fp_" + str(idx)))
+
             self.sourceInvNormalPath.append(
                 Bool("sourceInv" + str(i + 1) + "_np_" + str(idx)))
             self.finalInvNormalPath.append(

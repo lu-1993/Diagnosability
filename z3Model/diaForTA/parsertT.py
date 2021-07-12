@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 from collections import defaultdict
+from transition import Transition
 
 
 class Parser:
@@ -8,6 +9,8 @@ class Parser:
         pass
 
     def parse(self, nameFile: str):
+        t1 = Transition(1, 1, 1, 1, 1)
+        print(t1)
 
         file = open(nameFile, "r")
         context = file.readlines()  # contest store all txt transitions and parameters
