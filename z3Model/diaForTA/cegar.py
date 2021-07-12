@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from z3 import *
+from z3 import Solver, Int, Bool, Real, Implies, And, If, Or, Not, sat
 from parsertT import Parser
 from fractions import Fraction
 import time
+import sys
 
 # Here are some suppositions:
 # The NOP operation is represented by the ID 0
@@ -13,6 +14,9 @@ import time
 
 
 class Z3Model:
+    """
+    Class to represent the z3 model of time automaton
+    """
     # 'constants'
     NOP = 0
     FAULT = 1
