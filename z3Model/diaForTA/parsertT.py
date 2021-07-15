@@ -78,8 +78,8 @@ class Parser:
             transition.append(guard)
             transition.append(resetList)
 
-            automaton.append(Transition(
-                sourceState, finalState, event, guard, resetList))
+            #automaton.append(Transition(
+                #sourceState, finalState, event, guard, resetList))
 
             transitionList.append(transition)
 
@@ -104,6 +104,24 @@ class Parser:
             transition.insert(1, invariantsList[state])
             state = int(transition[2])
             transition.insert(3, invariantsList[state])
+
+            sourceState = transition[0]
+            sourceState_inv = transition[1]
+            finalState = transition[2]
+            finalState_inv = transition[3]
+            event = transition[4]
+            guard = transition[5]
+            resetList = transition[6]
+
+            automaton.append(Transition(
+                sourceState, finalState, event, guard, resetList, sourceState_inv, finalState_inv))
+            
+
+      
+
+
+
+
 
         for t in automaton:
             print(t)
