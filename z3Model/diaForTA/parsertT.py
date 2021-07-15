@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from transition import Transition
+from state import State
+from automaton import Automaton
 
 
 class Parser:
@@ -9,12 +11,11 @@ class Parser:
         pass
 
     def parse(self, nameFile: str):
-        automaton = []
-
         file = open(nameFile, "r")
         context = file.readlines()  # contest store all txt transitions and parameters
 
         initState = int(context[0].split(" ")[1])
+
         bound = int(context[0].split(" ")[3])
         delta = int(context[0].split(" ")[5])
 
@@ -36,6 +37,7 @@ class Parser:
 
         clockString = context[0].split(" ")[9]
         clockList = clockString.split("{")[1].split("}")[0].split(",")
+        automaton = Automaton(initState, len(clockList))
 
         transitionNum = 0
         for i in range(1, len(context)):
@@ -78,8 +80,8 @@ class Parser:
             transition.append(guard)
             transition.append(resetList)
 
-            #automaton.append(Transition(
-                #sourceState, finalState, event, guard, resetList))
+            # automaton.append(Transition(
+            # sourceState, finalState, event, guard, resetList))
 
             transitionList.append(transition)
 
@@ -113,18 +115,13 @@ class Parser:
             guard = transition[5]
             resetList = transition[6]
 
-            automaton.append(Transition(
-                sourceState, finalState, event, guard, resetList, sourceState_inv, finalState_inv))
-            
+            # ensure that the states exist.
+            automaton.addState(sourceState, sourceState_inv)
+            automaton.addState(finalState, finalState_inv)
 
-      
-
-
-
-
-
-        for t in automaton:
-            print(t)
+            # add a transition.
+            automaton.appendTransition(
+                sourceState, finalState, event, guard, resetList)
 
         file.close()
-        return initState, transitionList, bound, delta, len(clockList)
+        return automaton, bound, delta

@@ -5,7 +5,7 @@ class Transition:
     """
     uniq_id = 0
 
-    def __init__(self, source, target, event, guard, reset, socuce_inv, target_inv):
+    def __init__(self, source, target, event, guard, reset):
         """
         Constructor.
         """
@@ -17,11 +17,39 @@ class Transition:
         self.event = event
         self.guard = guard
         self.reset = reset
-        self.socuce_inv = socuce_inv
-        self.target_inv = target_inv
 
     def __str__(self):
         """
         ToString method
         """
-        return "*********************\nTransition id = " + str(self.id) + ":\n" + str(self.source) + " -> " + str(self.target) + "\nevent = " + str(self.event) + "\nguard = " + str(self.guard) + "\nreset = " + str(self.reset) + "\nsource_inv = " + str(self.socuce_inv) + "\ntarget_inv = " + str(self.target_inv)
+        return "*********************\nTransition id = " + str(self.id) + ":\n" + str(self.source) + " -> " + str(self.target) + "\nevent = " + str(self.event) + "\nguard = " + str(self.guard) + "\nreset = " + str(self.reset)
+
+    def getFinalState(self):
+        """
+        Getter.
+        """
+        return self.target
+
+    def getSourceState(self):
+        """
+        Getter.
+        """
+        return self.source
+
+    def getResetList(self):
+        """
+        Getter.
+        """
+        return self.reset
+
+    def getGuard(self):
+        """
+        Getter.
+        """
+        return self.guard
+
+    def getEventId(self):
+        """
+        Getter.
+        """
+        return self.event

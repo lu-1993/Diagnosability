@@ -4,6 +4,10 @@
 from z3 import Solver, Int, Bool, Real, Implies, And, If, Or, Not, sat
 from parsertT import Parser
 from fractions import Fraction
+
+from automaton import Automaton
+
+
 import time
 import sys
 
@@ -29,7 +33,7 @@ class Z3Model:
 
         # parse the file and store the automaton
         self.p = Parser()
-        self.initState, self.transitionList, self.BOUND, self.DELTA, self.clockNum = self.p.parse(
+        self.automaton, self.BOUND, self.DELTA = self.p.parse(
             sys.argv[1])
 
         # automaton description.
@@ -71,81 +75,76 @@ class Z3Model:
 
         # clockConstraint[clock_number][transition_number]
         self.clockValueFaultyPath = [
-            [Real("clock"+str(i+1)+"_fp_1"), Real("clock"+str(i+1)+"_fp_2")] for i in range(self.clockNum)]
+            [Real("clock"+str(i+1)+"_fp_1"), Real("clock"+str(i+1)+"_fp_2")] for i in range(self.automaton.clockNum)]
 
         self.clockValueNormalPath = [
-            [Real("clock"+str(i+1)+"_np_1"), Real("clock"+str(i+1)+"_np_2")] for i in range(self.clockNum)]
+            [Real("clock"+str(i+1)+"_np_1"), Real("clock"+str(i+1)+"_np_2")] for i in range(self.automaton.clockNum)]
 
         self.sourceInvFaultyPath = [
-            [Bool("sourceInv"+str(i+1)+'_fp_1')] for i in range(self.clockNum)]
+            [Bool("sourceInv"+str(i+1)+'_fp_1')] for i in range(self.automaton.clockNum)]
         self.sourceInvNormalPath = [
-            [Bool("sourceInv"+str(i+1)+'_np_1')] for i in range(self.clockNum)]
+            [Bool("sourceInv"+str(i+1)+'_np_1')] for i in range(self.automaton.clockNum)]
         self.finalInvFaultyPath = [
-            [Bool("finalInv"+str(i+1)+'_fp_1')] for i in range(self.clockNum)]
+            [Bool("finalInv"+str(i+1)+'_fp_1')] for i in range(self.automaton.clockNum)]
         self.finalInvNormalPath = [
-            [Bool("finalInv"+str(i+1)+'_np_1')] for i in range(self.clockNum)]
+            [Bool("finalInv"+str(i+1)+'_np_1')] for i in range(self.automaton.clockNum)]
 
         self.lengthFaultyPath = [Int("length_fp_1")]
         self.lengthNormalPath = [Int("normal_np_1")]
 
         self.resetConstraintFaultyPath = [
-           [Bool("reset" + str(i + 1) + "_fp_1")] for i in range(self.clockNum)]
+            [Bool("reset" + str(i + 1) + "_fp_1")] for i in range(self.automaton.clockNum)]
         self.resetConstraintNormalPath = [
-           [Bool("reset" + str(i + 1) + "_np_1")] for i in range(self.clockNum)]
+            [Bool("reset" + str(i + 1) + "_np_1")] for i in range(self.automaton.clockNum)]
 
         self.bound = Int("bound")
         self.delta = Int("delta")
 
         # we add a transition, that is the nop transition, in position 0 in the transitionList
-        self.transitionList.insert(
-            0, [-1, 1, -1, 1, 0, ['c' + str(i+1) + ">=0" for i in range(self.clockNum)], []])
-
         self.nextTransition = [[self.NOP_TRANSITION] for i in range(
-            len(self.transitionList))]  # they can all do nop
-        for i in range(len(self.transitionList)):
-            # fix the limit and store the id of the observable transitions.
+            self.automaton.getNbTransition())]  # they can all do nop
 
-            if self.transitionList[i][0] > self.maxLabelState:
-                self.maxLabelState = self.transitionList[i][0]
+        self.maxLabelState = self.automaton.getMaxStateLabel()
 
-            if self.transitionList[i][2] > self.maxLabelState:
-                self.maxLabelState = self.transitionList[i][2]
-
+        transitionList = self.automaton.getTransitionList()
+        for i in range(self.automaton.getNbTransition()):
             # for a transition t, collect the list of possible next transition that can be executed after t.
-            for j in range(len(self.transitionList)):
-                if (self.transitionList[i][2] == self.transitionList[j][0]):
+            for j in range(self.automaton.getNbTransition()):
+                if (transitionList[i].getFinalState() == transitionList[j].getSourceState()):
                     self.nextTransition[i].append(j)
 
         # we add a transition to start the two path identically.
         self.maxLabelState += 1
 
         ####################################
-        self.transitionList.append([self.maxLabelState, 1, self.initState, 1, 2, [
-                                   'c' + str(i+1) + "=0" for i in range(self.clockNum)], list(range(self.clockNum))])
+        self.automaton.addState(self.maxLabelState, 1)
+        self.automaton.appendTransition(self.maxLabelState, self.initState, 2, [
+                                        'c' + str(i+1) + "=0" for i in range(self.automaton.clockNum)], list(range(self.automaton.clockNum)))
+
+        # we add the transition is the last one in the transitionList , so the last one nextTransition is idx: idx is transition which begin with initState.
         self.nextTransition.append([self.NOP_TRANSITION])
         self.nextTransition[-1] += [idx for idx in range(
-            len(self.transitionList)) if self.transitionList[idx][0] == self.initState]
-        # we add the transition is the last one in the transitionList , so the last one nextTransition is idx: idx is transition which begin with initState.
+            self.automaton.getNbTransition()) if transitionList[idx].getSourceState() == self.automaton.getInitialState()]
 
         # we assign a status for each transition.
         self.labelTransition = [Int("statusTransition_" + str(i+1))
-                                for i in range(len(self.transitionList))]
+                                for i in range(self.automaton.getNbTransition())]
 
         # we assign reset constraint for each transtion
         self.resetTransition = [
-            [False for j in range(len(self.transitionList))] for i in range(self.clockNum)]
-        for i in range(len(self.transitionList)):
-            t = self.transitionList[i]
-            for c in t[-1]:
+            [False for j in range(self.automaton.getNbTransition())] for i in range(self.automaton.clockNum)]
+        for i in range(self.automaton.getNbTransition()):
+            for c in self.automaton.getTransitionAt(i).getResetList():
                 self.resetTransition[c][i] = True
 
         # we assign a clock constraints in clockTransition list in order.
-        for i in range(len(self.transitionList)):
-            self.clockTransition.append(self.transitionList[i][5])
+        for i in range(self.automaton.getNbTransition()):
+            self.clockTransition.append(
+                self.automaton.getTransitionAt(i).getGuard())
 
-        for i in range(len(self.transitionList)):  # max lable of transitions
-            if self.transitionList[i][4] > self.maxLabelTransition:
-                self.maxLabelTransition = self.transitionList[i][4]
+        for t in self.automaton.getTransitionList():  # max label of transitions
+            if t.getEventId() > self.maxLabelTransition:
+                self.maxLabelTransition = t.getEventId()
 
         # the first transition is labelled with 0: it is the NOP transition NOP: event = 0
         # event = 0
@@ -157,13 +156,13 @@ class Z3Model:
 
         # constraint on the first transition: cannot be nop by construction of possibleInitialTransition.
         # the last one in transitionList, which we add.
-        self.s.add(self.faultyPath[0] == len(self.transitionList) - 1)
-        self.s.add(self.normalPath[0] == len(self.transitionList) - 1)
+        self.s.add(self.faultyPath[0] == self.automaton.getNbTransition() - 1)
+        self.s.add(self.normalPath[0] == self.automaton.getNbTransition() - 1)
         self.s.add(self.faultyPath[0] == self.lastlyActiveFaultyPath[0])
         self.s.add(self.normalPath[0] == self.lastlyActiveNormalPath[0])
 
         # all clocks are initialized to 0 in the first transition
-        for i in range(self.clockNum):
+        for i in range(self.automaton.clockNum):
             self.s.add(self.clockValueFaultyPath[i][0] == 0)
             self.s.add(self.clockValueNormalPath[i][0] == 0)
 
@@ -201,7 +200,7 @@ class Z3Model:
         """
         # collect the label for the transition
 
-        for j in range(len(self.transitionList)):
+        for j in range(self.automaton.getNbTransition()):
 
             # assign states, event, guard, invariant, reset of a transition of fautly path and normal path.
             self.s.add(Implies(
@@ -213,25 +212,31 @@ class Z3Model:
             self.s.add(Implies(self.normalPath[pos] == j, self.clockConstraintNormalPath[pos] == And(
                 self.transConstraints(self.parseConstraints(self.clockTransition[j]), pos, 'n'))))
 
-            for i in range(self.clockNum):
-                self.s.add(Implies(self.faultyPath[pos] == j, self.resetConstraintFaultyPath[i][pos] == self.resetTransition[i][j]))
-                self.s.add(Implies(self.normalPath[pos] == j, self.resetConstraintNormalPath[i][pos] == self.resetTransition[i][j]))
+            for i in range(self.automaton.clockNum):
+                self.s.add(Implies(
+                    self.faultyPath[pos] == j, self.resetConstraintFaultyPath[i][pos] == self.resetTransition[i][j]))
+                self.s.add(Implies(
+                    self.normalPath[pos] == j, self.resetConstraintNormalPath[i][pos] == self.resetTransition[i][j]))
+
+                transition = self.automaton.getTransitionAt(j)
+                sourceState = transition.getSourceState()
+                finalState = transition.getFinalState()
 
                 self.s.add(Implies(self.faultyPath[pos] == j, self.sourceInvFaultyPath[i][pos] == And(
-                    self.parseInv(self.transitionList[j][1], i, pos, 'f'))))
+                    self.parseInv(sourceState.getInvariant(), i, pos, 'f'))))
                 self.s.add(Implies(self.faultyPath[pos] == j, self.finalInvFaultyPath[i][pos] == And(
-                    self.parseInv(self.transitionList[j][3], i, pos+1, 'f'))))
+                    self.parseInv(finalState.getInvariant(), i, pos+1, 'f'))))
 
                 self.s.add(Implies(self.normalPath[pos] == j, self.sourceInvNormalPath[i][pos] == And(
-                    self.parseInv(self.transitionList[j][1], i, pos, 'n'))))
+                    self.parseInv(sourceState.getInvariant(), i, pos, 'n'))))
                 self.s.add(Implies(self.normalPath[pos] == j, self.finalInvNormalPath[i][pos] == And(
-                    self.parseInv(self.transitionList[j][3], i, pos+1, 'n'))))
+                    self.parseInv(finalState.getInvariant(), i, pos+1, 'n'))))
 
         self.s.add(self.clockConstraintFaultyPath[pos] == True)
         self.s.add(self.clockConstraintNormalPath[pos] == True)
 
         # clocks progress
-        for j in range(self.clockNum):
+        for j in range(self.automaton.clockNum):
             self.s.add(Implies(self.resetConstraintFaultyPath[j][pos] == True,
                        self.clockValueFaultyPath[j][pos + 1] == 0 + self.delayClockFaultyPath[pos+1]))
 
@@ -314,7 +319,7 @@ class Z3Model:
         self.lengthFaultyPath.append(Int("length_fp_" + str(idx)))
         self.lengthNormalPath.append(Int("length_np_" + str(idx)))
 
-        for i in range(self.clockNum):  # reset need next clock value
+        for i in range(self.automaton.clockNum):  # reset need next clock value
             self.clockValueFaultyPath[i].append(
                 Real("clock" + str(i + 1) + "_fp_" + str(idx+1)))
             self.clockValueNormalPath[i].append(
@@ -345,8 +350,8 @@ class Z3Model:
         self.incVariableList()
 
         # we reduce the domain to what it is necessary
-        self.s.add(self.faultyPath[idx] <= len(self.transitionList))
-        self.s.add(self.normalPath[idx] <= len(self.transitionList))
+        self.s.add(self.faultyPath[idx] <= self.automaton.getNbTransition())
+        self.s.add(self.normalPath[idx] <= self.automaton.getNbTransition())
 
         self.s.add(self.idTransitionFaultyPath[idx] <= self.maxLabelTransition)
         self.s.add(self.idTransitionNormalPath[idx] <= self.maxLabelTransition)
@@ -362,7 +367,7 @@ class Z3Model:
                    self.lastlyActiveNormalPath[idx] == self.normalPath[idx]))
 
         # verify that transitions are correct regarding the label.
-        for j in range(len(self.transitionList)):
+        for j in range(self.automaton.getNbTransition()):
             self.s.add(Implies(self.lastlyActiveFaultyPath[idx-1] == j, Or(
                 [self.faultyPath[idx] == n for n in self.nextTransition[j]])))
             self.s.add(Implies(self.lastlyActiveNormalPath[idx-1] == j, Or(
@@ -418,10 +423,7 @@ class Z3Model:
         print("Information ...")
         print("automata:")
 
-        for i in range(len(self.transitionList)):
-            print(i, ":", self.transitionList[i])
-
-        print("initial state:", self.initState)
+        print(self.automaton)
 
         print("next transition:")
         for i in range(len(self.nextTransition)):
@@ -459,12 +461,13 @@ class Z3Model:
                     self.lastlyActiveFaultyPath[i-1]).as_long())
             id = int(model.evaluate(self.idTransitionFaultyPath[i]).as_long())
             nop = model.evaluate(self.nopFaultyPath[i])
-            assert(id == 0 or self.transitionList[v][2] == id)
+            assert(id == 0 or self.automaton.getTransitionAt(
+                v).getFinalState().getId() == id)
 
             assert(nop or v != 0)
             if previous != None:
                 assert(
-                    nop or self.transitionList[previous][1] == self.transitionList[v][0])
+                    nop or self.automaton.getTransitionAt(previous).getFinalState() == self.automaton.getTransitionAt(v).getSourceState())
                 print(lv, previous)
                 assert(lv == previous)
 
@@ -479,12 +482,13 @@ class Z3Model:
                     self.lastlyActiveNormalPath[i-1]).as_long())
             id = int(model.evaluate(self.idTransitionNormalPath[i]).as_long())
             nop = model.evaluate(self.nopNormalPath[i])
-            assert(id == 0 or self.transitionList[v][2] == id)
+            assert(id == 0 or self.automaton.getTransitionAt(
+                v).getFinalState().getId() == id)
 
             assert(nop or v != 0)
             if previous != None:
                 assert(
-                    nop or self.transitionList[previous][1] == self.transitionList[v][0])
+                    nop or self.automaton.getTransitionAt(previous).getFinalState() == self.automaton.getTransitionAt(v).getSourceState())
                 assert(lv == previous)
 
             if not nop:
@@ -628,7 +632,7 @@ class Z3Model:
         """
 
         # constraint =str(constaintlist[0])
-        clocklist = ["c" + str(i + 1) for i in range(self.clockNum)]
+        clocklist = ["c" + str(i + 1) for i in range(self.automaton.clockNum)]
         ex = []
         for i in constraint_single:
             flag = 0
@@ -695,7 +699,7 @@ class Z3Model:
         """
         resetList = resetConstraint.split(";")
         reset = []
-        for i in range(self.clockNum):
+        for i in range(self.automaton.clockNum):
             reset.append(0)
         for element in resetList:
             if element != '0':  # maybe bug
@@ -740,8 +744,9 @@ class Z3Model:
         assumD = Bool("d" + str(self.idxAssum))
         self.s.add(Implies(assumD, self.delta == self.DELTA))
 
-        for i in range(len(self.transitionList)):
-            self.s.add(self.labelTransition[i] == self.transitionList[i][4])
+        for i in range(self.automaton.getNbTransition()):
+            self.s.add(
+                self.labelTransition[i] == self.automaton.getTransitionAt(i).getEventId())
 
         cpt = 1
 
