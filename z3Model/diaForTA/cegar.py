@@ -188,6 +188,8 @@ class Z3Model:
         self.s.add(self.lengthNormalPath[0] == 0)
         self.s.add(self.lengthFaultyPath[0] == 0)
 
+        self.isObservableTransition = [Bool(
+            "isObservable_" + str(i + 1)) for i in range(self.automaton.getNbTransition())]
         self.addConstraintOnIdTransition(0)
 
     def addConstraintOnIdTransition(self, pos):
@@ -280,8 +282,11 @@ class Z3Model:
                        == self.lengthNormalPath[pos-1], self.lengthNormalPath[pos] == self.lengthNormalPath[pos-1] + 1))
 
         # synchronize
-        self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS,
-                   self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
+        self.s.add(And(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS,
+                          self.idTransitionNormalPath[pos] > self.NO_OBS), self.isObservableTransition[pos]) == self.checkSynchro[pos])
+        # PREVIOUS VERSION WITH NO CONTROL ON OBSERVATION.
+        # self.s.add(Or(self.idTransitionFaultyPath[pos] > self.NO_OBS,
+        #           self.idTransitionNormalPath[pos] > self.NO_OBS) == self.checkSynchro[pos])
         self.s.add(Or(Not(self.checkSynchro[pos]), And(self.idTransitionFaultyPath[pos] ==
                    self.idTransitionNormalPath[pos], self.globalClockFaultyPath[pos] == self.globalClockNormalPath[pos])))
 
@@ -749,7 +754,6 @@ class Z3Model:
                 self.labelTransition[i] == self.automaton.getTransitionAt(i).getEventId())
 
         cpt = 1
-
         while cpt <= self.BOUND:
             # while cpt < (2 * self.BOUND)
 
@@ -775,7 +779,17 @@ class Z3Model:
             # self.s.add(self.lengthFaultyPath[-1] <= self.BOUND)
             # self.s.add(self.lengthNormalPath[-1] <= self.BOUND)
 
-            res = self.s.check(assumD, assumB, assumF, assumFO)
+            tmp = list(self.isObservableTransition)
+            # for i in range(len(tmp)):
+            #     tmp[i] = Not(tmp[i])
+            # tmp[1] = Not(tmp[1])
+            # tmp[2] = Not(tmp[2])
+            # tmp[3] = Not(tmp[3])
+
+            # listAssum = [assumB, assumF, assumFO] + [l for l in self.isObservableTransition]
+            listAssum = [assumB, assumF, assumFO] + tmp
+
+            res = self.s.check(assumD, *listAssum)
 
             if res == sat:
                 print("sat")

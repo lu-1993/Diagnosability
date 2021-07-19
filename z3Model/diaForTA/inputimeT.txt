@@ -1,4 +1,4 @@
-Initial_state 0 Bound 3 delta_value 7 observable={o1,o2} unobservable={un1} fault={f} clock={c1} 
+Initial_state 0 Bound 4 delta_value 7 observable={o1,o2} unobservable={un1} fault={f} clock={c1} 
 0 o1 1 c1>=3 0
 1 f 2 5>=c1 0
 2 un1 3 7>=c1 0
